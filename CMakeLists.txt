@@ -1208,3 +1208,7 @@ endif()
 # ----------------------------------------------------------------------------
 
 include(cmake/OpenCVPackaging.cmake)
+
+
+# Install catkin package.xml
+install(FILES package.xml DESTINATION share/opencv3)
