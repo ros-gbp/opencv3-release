@@ -14,7 +14,7 @@ tracks:
     last_version: 3.0.0
     name: upstream
     patches: null
-    release_inc: '4'
+    release_inc: '5'
     release_repo_url: null
     release_tag: :{ask}
     ros_distro: jade
