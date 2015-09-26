@@ -1208,3 +1208,4 @@ endif()
 # ----------------------------------------------------------------------------
 
 include(cmake/OpenCVPackaging.cmake)
+install(FILES package.xml DESTINATION share/opencv3)
