@@ -430,7 +430,7 @@ ocv_include_directories(${OPENCV_CONFIG_FILE_INCLUDE_DIR})
 # ----------------------------------------------------------------------------
 #  Path for additional modules
 # ----------------------------------------------------------------------------
-set(OPENCV_EXTRA_MODULES_PATH "${CMAKE_CURRENT_DIR}/opencv_contrib/" CACHE PATH "Where to look for additional OpenCV modules")
+set(OPENCV_EXTRA_MODULES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/opencv_contrib/" CACHE PATH "Where to look for additional OpenCV modules")
 
 # ----------------------------------------------------------------------------
 #  Autodetect if we are in a GIT repository
