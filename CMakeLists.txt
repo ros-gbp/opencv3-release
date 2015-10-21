@@ -171,7 +171,7 @@ OCV_OPTION(WITH_GSTREAMER      "Include Gstreamer support"                   ON 
 OCV_OPTION(WITH_GSTREAMER_0_10 "Enable Gstreamer 0.10 support (instead of 1.x)"                              OFF )
 OCV_OPTION(WITH_GTK            "Include GTK support"                         ON   IF (UNIX AND NOT APPLE AND NOT ANDROID) )
 OCV_OPTION(WITH_GTK_2_X        "Use GTK version 2"                           OFF  IF (UNIX AND NOT APPLE AND NOT ANDROID) )
-OCV_OPTION(WITH_IPP            "Include Intel IPP support"                   OFF)
+OCV_OPTION(WITH_IPP            "Include Intel IPP support"                   NOT MINGW IF (X86_64 OR X86) AND NOT WINRT )
 OCV_OPTION(WITH_JASPER         "Include JPEG2K support"                      ON   IF (NOT IOS) )
 OCV_OPTION(WITH_JPEG           "Include JPEG support"                        ON)
 OCV_OPTION(WITH_WEBP           "Include WebP support"                        ON   IF (NOT IOS AND NOT WINRT) )
@@ -409,7 +409,7 @@ if(WIN32)
   set(OPENCV_DEBUG_POSTFIX d)
 else()
   # Postfix of so's:
-  set(OPENCV_DLLVERSION "")
+  set(OPENCV_DLLVERSION "3")
   set(OPENCV_DEBUG_POSTFIX "")
 endif()
 
@@ -1208,4 +1208,6 @@ endif()
 # ----------------------------------------------------------------------------
 
 include(cmake/OpenCVPackaging.cmake)
+install(FILES package.xml DESTINATION share/opencv3)
+install(FILES package.xml DESTINATION share/opencv3)
 install(FILES package.xml DESTINATION share/opencv3)
