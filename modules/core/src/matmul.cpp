@@ -2916,7 +2916,7 @@ dotProd_(const T* src1, const T* src2, int len)
 static double dotProd_8u(const uchar* src1, const uchar* src2, int len)
 {
     double r = 0;
-#if ARITHM_USE_IPP && 0
+#if ARITHM_USE_IPP && IPP_DISABLE_BLOCK
     CV_IPP_CHECK()
     {
         if (0 <= ippiDotProd_8u64f_C1R(src1, (int)(len*sizeof(src1[0])),
@@ -3131,7 +3131,7 @@ static double dotProd_16u(const ushort* src1, const ushort* src2, int len)
 
 static double dotProd_16s(const short* src1, const short* src2, int len)
 {
-#if (ARITHM_USE_IPP == 1)
+#if (ARITHM_USE_IPP == 1) && (IPP_VERSION_X100 != 900) // bug in IPP 9.0.0
     CV_IPP_CHECK()
     {
         double r = 0;
