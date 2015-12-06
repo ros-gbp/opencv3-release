@@ -85,6 +85,8 @@ if(DEFINED CMAKE_BUILD_TYPE)
   set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} )
 endif()
 
+enable_testing()
+
 project(OpenCV CXX C)
 
 if(MSVC)
@@ -242,7 +244,7 @@ OCV_OPTION(INSTALL_CREATE_DISTRIB   "Change install rules to build the distribut
 OCV_OPTION(INSTALL_C_EXAMPLES       "Install C examples"        OFF )
 OCV_OPTION(INSTALL_PYTHON_EXAMPLES  "Install Python examples"   OFF )
 OCV_OPTION(INSTALL_ANDROID_EXAMPLES "Install Android examples"  OFF IF ANDROID )
-OCV_OPTION(INSTALL_TO_MANGLED_PATHS "Enables mangled install paths, that help with side by side installs." OFF IF (UNIX AND NOT ANDROID AND NOT IOS AND BUILD_SHARED_LIBS) )
+OCV_OPTION(INSTALL_TO_MANGLED_PATHS "Enables mangled install paths, that help with side by side installs." ON )
 OCV_OPTION(INSTALL_TESTS            "Install accuracy and performance test binaries and test data" OFF)
 
 # OpenCV build options
@@ -490,7 +492,7 @@ if(UNIX)
     CHECK_INCLUDE_FILE(pthread.h HAVE_LIBPTHREAD)
     if(ANDROID)
       set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} dl m log)
-    elseif(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD|DragonFly")
+    elseif(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD|DragonFly|OpenBSD")
       set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} m pthread)
     elseif(EMSCRIPTEN)
       # no need to link to system libs with emscripten
@@ -1208,6 +1210,4 @@ endif()
 # ----------------------------------------------------------------------------
 
 include(cmake/OpenCVPackaging.cmake)
-install(FILES package.xml DESTINATION share/opencv3)
-install(FILES package.xml DESTINATION share/opencv3)
 install(FILES package.xml DESTINATION share/opencv3)
