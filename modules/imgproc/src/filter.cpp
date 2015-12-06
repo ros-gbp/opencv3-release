@@ -4031,7 +4031,7 @@ static bool ocl_filter2D( InputArray _src, OutputArray _dst, int ddepth,
 
     cv::Mat kernelMat = _kernel.getMat();
     cv::Size sz = _src.size(), wholeSize;
-    size_t globalsize[2] = { sz.width, sz.height };
+    size_t globalsize[2] = { (size_t)sz.width, (size_t)sz.height };
     size_t localsize_general[2] = {0, 1};
     size_t* localsize = NULL;
 
@@ -4624,7 +4624,7 @@ static bool ipp_filter2D( InputArray _src, OutputArray _dst, int ddepth,
                     IppAutoBuffer<Ipp32f> kerTmp;
                     int kerStep = sizeof(Ipp32f)*kernelSize.width;
 #if IPP_VERSION_X100 >= 900
-                    if(kernel.step != kerStep)
+                    if((int)kernel.step != kerStep)
                     {
                         kerTmp.Alloc(kerStep*kernelSize.height);
                         if(ippiCopy_32f_C1R((Ipp32f*)kernel.data, (int)kernel.step, kerTmp, kerStep, kernelSize) < 0)
@@ -4651,7 +4651,7 @@ static bool ipp_filter2D( InputArray _src, OutputArray _dst, int ddepth,
                     IppAutoBuffer<Ipp16s> kerTmp;
                     int kerStep = sizeof(Ipp16s)*kernelSize.width;
 #if IPP_VERSION_X100 >= 900
-                    if(kernel.step != kerStep)
+                    if((int)kernel.step != kerStep)
                     {
                         kerTmp.Alloc(kerStep*kernelSize.height);
                         if(ippiCopy_16s_C1R((Ipp16s*)kernel.data, (int)kernel.step, kerTmp, kerStep, kernelSize) < 0)
