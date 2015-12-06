@@ -1,2 +1,0 @@
-ArUco Marker Detection
-======================

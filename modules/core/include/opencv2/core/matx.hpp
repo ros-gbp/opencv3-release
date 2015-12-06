@@ -574,20 +574,22 @@ Matx<_Tp, m, n>::Matx(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5, _Tp v6, _T
 template<typename _Tp, int m, int n> inline
 Matx<_Tp,m,n>::Matx(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5, _Tp v6, _Tp v7, _Tp v8, _Tp v9, _Tp v10, _Tp v11)
 {
-    CV_StaticAssert(channels == 12, "Matx should have at least 12 elements.");
+    CV_StaticAssert(channels >= 12, "Matx should have at least 12 elements.");
     val[0] = v0; val[1] = v1; val[2] = v2; val[3] = v3;
     val[4] = v4; val[5] = v5; val[6] = v6; val[7] = v7;
     val[8] = v8; val[9] = v9; val[10] = v10; val[11] = v11;
+    for(int i = 12; i < channels; i++) val[i] = _Tp(0);
 }
 
 template<typename _Tp, int m, int n> inline
 Matx<_Tp,m,n>::Matx(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5, _Tp v6, _Tp v7, _Tp v8, _Tp v9, _Tp v10, _Tp v11, _Tp v12, _Tp v13, _Tp v14, _Tp v15)
 {
-    CV_StaticAssert(channels == 16, "Matx should have at least 16 elements.");
+    CV_StaticAssert(channels >= 16, "Matx should have at least 16 elements.");
     val[0] = v0; val[1] = v1; val[2] = v2; val[3] = v3;
     val[4] = v4; val[5] = v5; val[6] = v6; val[7] = v7;
     val[8] = v8; val[9] = v9; val[10] = v10; val[11] = v11;
     val[12] = v12; val[13] = v13; val[14] = v14; val[15] = v15;
+    for(int i = 16; i < channels; i++) val[i] = _Tp(0);
 }
 
 template<typename _Tp, int m, int n> inline
@@ -838,9 +840,17 @@ double norm(const Matx<_Tp, m, n>& M)
 template<typename _Tp, int m, int n> static inline
 double norm(const Matx<_Tp, m, n>& M, int normType)
 {
-    return normType == NORM_INF ? (double)normInf<_Tp, typename DataType<_Tp>::work_type>(M.val, m*n) :
-        normType == NORM_L1 ? (double)normL1<_Tp, typename DataType<_Tp>::work_type>(M.val, m*n) :
-        std::sqrt((double)normL2Sqr<_Tp, typename DataType<_Tp>::work_type>(M.val, m*n));
+    switch(normType) {
+    case NORM_INF:
+        return (double)normInf<_Tp, typename DataType<_Tp>::work_type>(M.val, m*n);
+    case NORM_L1:
+        return (double)normL1<_Tp, typename DataType<_Tp>::work_type>(M.val, m*n);
+    case NORM_L2SQR:
+        return (double)normL2Sqr<_Tp, typename DataType<_Tp>::work_type>(M.val, m*n);
+    default:
+    case NORM_L2:
+        return std::sqrt((double)normL2Sqr<_Tp, typename DataType<_Tp>::work_type>(M.val, m*n));
+    }
 }
 
 
