@@ -225,8 +225,10 @@ enum MorphTypes{
                         //!< \f[\texttt{dst} = \mathrm{morph\_grad} ( \texttt{src} , \texttt{element} )= \mathrm{dilate} ( \texttt{src} , \texttt{element} )- \mathrm{erode} ( \texttt{src} , \texttt{element} )\f]
     MORPH_TOPHAT   = 5, //!< "top hat"
                         //!< \f[\texttt{dst} = \mathrm{tophat} ( \texttt{src} , \texttt{element} )= \texttt{src} - \mathrm{open} ( \texttt{src} , \texttt{element} )\f]
-    MORPH_BLACKHAT = 6  //!< "black hat"
+    MORPH_BLACKHAT = 6, //!< "black hat"
                         //!< \f[\texttt{dst} = \mathrm{blackhat} ( \texttt{src} , \texttt{element} )= \mathrm{close} ( \texttt{src} , \texttt{element} )- \texttt{src}\f]
+    MORPH_HITMISS  = 7  //!< "hit and miss"
+                        //!<   .- Only supported for CV_8UC1 binary images. Tutorial can be found in [this page](http://opencv-code.com/tutorials/hit-or-miss-transform-in-opencv/)
 };
 
 //! shape of the structuring element
@@ -1922,7 +1924,7 @@ CV_EXPORTS_W void dilate( InputArray src, OutputArray dst, InputArray kernel,
 
 /** @brief Performs advanced morphological transformations.
 
-The function can perform advanced morphological transformations using an erosion and dilation as
+The function morphologyEx can perform advanced morphological transformations using an erosion and dilation as
 basic operations.
 
 Any of the operations can be done in-place. In case of multi-channel images, each channel is
@@ -1930,11 +1932,11 @@ processed independently.
 
 @param src Source image. The number of channels can be arbitrary. The depth should be one of
 CV_8U, CV_16U, CV_16S, CV_32F or CV_64F.
-@param dst Destination image of the same size and type as  src\` .
-@param kernel Structuring element. It can be created using getStructuringElement.
+@param dst Destination image of the same size and type as source image.
+@param op Type of a morphological operation, see cv::MorphTypes
+@param kernel Structuring element. It can be created using cv::getStructuringElement.
 @param anchor Anchor position with the kernel. Negative values mean that the anchor is at the
 kernel center.
-@param op Type of a morphological operation, see cv::MorphTypes
 @param iterations Number of times erosion and dilation are applied.
 @param borderType Pixel extrapolation method, see cv::BorderTypes
 @param borderValue Border value in case of a constant border. The default value has a special
@@ -3901,6 +3903,43 @@ a filled ellipse sector is to be drawn.
 */
 CV_EXPORTS_W void ellipse(InputOutputArray img, const RotatedRect& box, const Scalar& color,
                         int thickness = 1, int lineType = LINE_8);
+
+/* ----------------------------------------------------------------------------------------- */
+/* ADDING A SET OF PREDEFINED MARKERS WHICH COULD BE USED TO HIGHLIGHT POSITIONS IN AN IMAGE */
+/* ----------------------------------------------------------------------------------------- */
+
+//! Possible set of marker types used for the cv::drawMarker function
+enum MarkerTypes
+{
+    MARKER_CROSS = 0,           //!< A crosshair marker shape
+    MARKER_TILTED_CROSS = 1,    //!< A 45 degree tilted crosshair marker shape
+    MARKER_STAR = 2,            //!< A star marker shape, combination of cross and tilted cross
+    MARKER_DIAMOND = 3,         //!< A diamond marker shape
+    MARKER_SQUARE = 4,          //!< A square marker shape
+    MARKER_TRIANGLE_UP = 5,     //!< An upwards pointing triangle marker shape
+    MARKER_TRIANGLE_DOWN = 6    //!< A downwards pointing triangle marker shape
+};
+
+/** @brief Draws a marker on a predefined position in an image.
+
+The function drawMarker draws a marker on a given position in the image. For the moment several
+marker types are supported, see cv::MarkerTypes for more information.
+
+@param img Image.
+@param position The point where the crosshair is positioned.
+@param markerType The specific type of marker you want to use, see cv::MarkerTypes
+@param color Line color.
+@param thickness Line thickness.
+@param line_type Type of the line, see cv::LineTypes
+@param markerSize The length of the marker axis [default = 20 pixels]
+ */
+CV_EXPORTS_W void drawMarker(CV_IN_OUT Mat& img, Point position, const Scalar& color,
+                             int markerType = MARKER_CROSS, int markerSize=20, int thickness=1,
+                             int line_type=8);
+
+/* ----------------------------------------------------------------------------------------- */
+/* END OF MARKER SECTION */
+/* ----------------------------------------------------------------------------------------- */
 
 /** @overload */
 CV_EXPORTS void fillConvexPoly(Mat& img, const Point* pts, int npts,

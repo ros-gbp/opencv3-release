@@ -1057,7 +1057,7 @@ static bool ocl_boxFilter( InputArray _src, OutputArray _dst, int ddepth,
         wtype = CV_MAKE_TYPE(wdepth, cn), dtype = CV_MAKE_TYPE(ddepth, cn);
 
     const char * const borderMap[] = { "BORDER_CONSTANT", "BORDER_REPLICATE", "BORDER_REFLECT", 0, "BORDER_REFLECT_101" };
-    size_t globalsize[2] = { size.width, size.height };
+    size_t globalsize[2] = { (size_t)size.width, (size_t)size.height };
     size_t localsize_general[2] = { 0, 1 }, * localsize = NULL;
 
     UMat src = _src.getUMat();
@@ -1716,7 +1716,7 @@ static bool ipp_GaussianBlur( InputArray _src, OutputArray _dst, Size ksize,
 
                     IppStatus status = ippStsErr;
 #if !HAVE_ICV
-#if IPP_VERSION_X100 > 901 // Buffer overflow in IPP
+#if IPP_VERSION_X100 > 900 // Buffer overflow may happen in IPP 9.0.0 and less
                     if (type == CV_8UC1)
                         IPP_FILTER_GAUSS_C1(8u)
                     else
@@ -3108,7 +3108,7 @@ static bool ocl_bilateralFilter_8u(InputArray _src, OutputArray _dst, int d,
      }
      ocl::Kernel k(kernelName.c_str(), ocl::imgproc::bilateral_oclsrc,
             format("-D radius=%d -D maxk=%d -D cn=%d -D int_t=%s -D uint_t=uint%s -D convert_int_t=%s"
-            " -D uchar_t=%s -D float_t=%s -D convert_float_t=%s -D convert_uchar_t=%s -D gauss_color_coeff=%f",
+            " -D uchar_t=%s -D float_t=%s -D convert_float_t=%s -D convert_uchar_t=%s -D gauss_color_coeff=(float)%f",
             radius, maxk, cn, ocl::typeToStr(CV_32SC(cn)), cnstr.c_str(),
             ocl::convertTypeStr(CV_8U, CV_32S, cn, cvt[0]),
             ocl::typeToStr(type), ocl::typeToStr(CV_32FC(cn)),
@@ -3128,7 +3128,7 @@ static bool ocl_bilateralFilter_8u(InputArray _src, OutputArray _dst, int d,
            ocl::KernelArg::PtrReadOnly(uspace_weight),
            ocl::KernelArg::PtrReadOnly(uspace_ofs));
 
-    size_t globalsize[2] = { dst.cols / sizeDiv, dst.rows };
+    size_t globalsize[2] = { (size_t)dst.cols / sizeDiv, (size_t)dst.rows };
     return k.run(2, globalsize, NULL, false);
 }
 
