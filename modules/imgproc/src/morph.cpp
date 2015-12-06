@@ -1411,7 +1411,7 @@ static bool ocl_morphSmall( InputArray _src, OutputArray _dst, InputArray _kerne
 
     const char * const borderMap[] = { "BORDER_CONSTANT", "BORDER_REPLICATE",
                                        "BORDER_REFLECT", 0, "BORDER_REFLECT_101" };
-    size_t globalsize[2] = { size.width, size.height };
+    size_t globalsize[2] = { (size_t)size.width, (size_t)size.height };
 
     UMat src = _src.getUMat();
     if (!isolated)
@@ -1592,7 +1592,7 @@ static bool ocl_morphOp(InputArray _src, OutputArray _dst, InputArray _kernel,
 #else
     size_t localThreads[2] = { 16, 16 };
 #endif
-    size_t globalThreads[2] = { ssize.width, ssize.height };
+    size_t globalThreads[2] = { (size_t)ssize.width, (size_t)ssize.height };
 
 #ifdef __APPLE__
     if( actual_op != MORPH_ERODE && actual_op != MORPH_DILATE )
@@ -1872,6 +1872,8 @@ void cv::morphologyEx( InputArray _src, OutputArray _dst, int op,
     _dst.create(src.size(), src.type());
     Mat dst = _dst.getMat();
 
+    Mat k1, k2, e1, e2;		//only for hit and miss op
+
     switch( op )
     {
     case MORPH_ERODE:
@@ -1906,6 +1908,24 @@ void cv::morphologyEx( InputArray _src, OutputArray _dst, int op,
         dilate( src, temp, kernel, anchor, iterations, borderType, borderValue );
         erode( temp, temp, kernel, anchor, iterations, borderType, borderValue );
         dst = temp - src;
+        break;
+    case MORPH_HITMISS:
+        CV_Assert(src.type() == CV_8UC1);
+        k1 = (kernel == 1);
+        k2 = (kernel == -1);
+        if (countNonZero(k1) <= 0)
+            e1 = src;
+        else
+            erode(src, e1, k1, anchor, iterations, borderType, borderValue);
+        if (countNonZero(k2) <= 0)
+            e2 = src;
+        else
+        {
+            Mat src_complement;
+            bitwise_not(src, src_complement);
+            erode(src_complement, e2, k2, anchor, iterations, borderType, borderValue);
+        }
+        dst = e1 & e2;
         break;
     default:
         CV_Error( CV_StsBadArg, "unknown morphological operation" );

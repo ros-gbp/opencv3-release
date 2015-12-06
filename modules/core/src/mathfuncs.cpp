@@ -44,6 +44,7 @@
 #include "precomp.hpp"
 #include "opencl_kernels_core.hpp"
 #include <limits>
+#include <iostream>
 
 namespace cv
 {
@@ -93,7 +94,7 @@ static bool ocl_math_op(InputArray _src1, InputArray _src2, OutputArray _dst, in
     else
         k.args(src1arg, src2arg, dstarg);
 
-    size_t globalsize[] = { src1.cols * cn / kercn, (src1.rows + rowsPerWI - 1) / rowsPerWI };
+    size_t globalsize[] = { (size_t)src1.cols * cn / kercn, ((size_t)src1.rows + rowsPerWI - 1) / rowsPerWI };
     return k.run(2, globalsize, 0, false);
 }
 
@@ -330,7 +331,7 @@ static bool ocl_cartToPolar( InputArray _src1, InputArray _src2,
            ocl::KernelArg::WriteOnly(dst1, cn),
            ocl::KernelArg::WriteOnlyNoSize(dst2));
 
-    size_t globalsize[2] = { dst1.cols * cn, (dst1.rows + rowsPerWI - 1) / rowsPerWI };
+    size_t globalsize[2] = { (size_t)dst1.cols * cn, ((size_t)dst1.rows + rowsPerWI - 1) / rowsPerWI };
     return k.run(2, globalsize, NULL, false);
 }
 
@@ -612,7 +613,7 @@ static bool ocl_polarToCart( InputArray _mag, InputArray _angle,
     k.args(ocl::KernelArg::ReadOnlyNoSize(mag), ocl::KernelArg::ReadOnlyNoSize(angle),
            ocl::KernelArg::WriteOnly(dst1, cn), ocl::KernelArg::WriteOnlyNoSize(dst2));
 
-    size_t globalsize[2] = { dst1.cols * cn, (dst1.rows + rowsPerWI - 1) / rowsPerWI };
+    size_t globalsize[2] = { (size_t)dst1.cols * cn, ((size_t)dst1.rows + rowsPerWI - 1) / rowsPerWI };
     return k.run(2, globalsize, NULL, false);
 }
 
@@ -1181,8 +1182,8 @@ iPow_i( const T* src, T* dst, int len, int power )
     {
         T tab[5] =
         {
-            power == -1 ? saturate_cast<T>(-1) : 0, (power & 1) ? -1 : 1,
-            std::numeric_limits<T>::max(), 1, power == -1 ? 1 : 0
+            saturate_cast<T>(power == -1 ? -1 : 0), saturate_cast<T>((power & 1) ? -1 : 1),
+            std::numeric_limits<T>::max(), 1, saturate_cast<T>(power == -1 ? 1 : 0)
         };
         for( int i = 0; i < len; i++ )
         {
@@ -1349,7 +1350,7 @@ static bool ocl_pow(InputArray _src, double power, OutputArray _dst,
             k.args(srcarg, dstarg, power);
     }
 
-    size_t globalsize[2] = { dst.cols *  cn, (dst.rows + rowsPerWI - 1) / rowsPerWI };
+    size_t globalsize[2] = { (size_t)dst.cols *  cn, ((size_t)dst.rows + rowsPerWI - 1) / rowsPerWI };
     return k.run(2, globalsize, NULL, false);
 }
 
@@ -1364,10 +1365,16 @@ void pow( InputArray _src, double power, OutputArray _dst )
 {
     int type = _src.type(), depth = CV_MAT_DEPTH(type),
             cn = CV_MAT_CN(type), ipower = cvRound(power);
-    bool is_ipower = fabs(ipower - power) < DBL_EPSILON,
-            useOpenCL = _dst.isUMat() && _src.dims() <= 2;
+    bool is_ipower = fabs(ipower - power) < DBL_EPSILON;
+#ifdef HAVE_OPENCL
+    bool useOpenCL = _dst.isUMat() && _src.dims() <= 2;
+#endif
 
-    if( is_ipower && !(ocl::Device::getDefault().isIntel() && useOpenCL && depth != CV_64F))
+    if( is_ipower
+#ifdef HAVE_OPENCL
+            && !(useOpenCL && ocl::Device::getDefault().isIntel() && depth != CV_64F)
+#endif
+      )
     {
         switch( ipower )
         {
@@ -1734,7 +1741,7 @@ static bool ocl_patchNaNs( InputOutputArray _a, float value )
     k.args(ocl::KernelArg::ReadOnlyNoSize(a),
            ocl::KernelArg::WriteOnly(a, cn), (float)value);
 
-    size_t globalsize[2] = { a.cols * cn, (a.rows + rowsPerWI - 1) / rowsPerWI };
+    size_t globalsize[2] = { (size_t)a.cols * cn, ((size_t)a.rows + rowsPerWI - 1) / rowsPerWI };
     return k.run(2, globalsize, NULL, false);
 }
 
@@ -1992,10 +1999,10 @@ int cv::solveCubic( InputArray _coeffs, OutputArray _roots )
         double Qcubed = Q * Q * Q;
         double d = Qcubed - R * R;
 
-        if( d >= 0 )
+        if( d > 0 )
         {
-            double theta = acos(R / std::sqrt(Qcubed));
-            double sqrtQ = std::sqrt(Q);
+            double theta = acos(R / sqrt(Qcubed));
+            double sqrtQ = sqrt(Q);
             double t0 = -2 * sqrtQ;
             double t1 = theta * (1./3);
             double t2 = a1 * (1./3);
@@ -2004,11 +2011,27 @@ int cv::solveCubic( InputArray _coeffs, OutputArray _roots )
             x2 = t0 * cos(t1 + (4.*CV_PI/3)) - t2;
             n = 3;
         }
+        else if( d == 0 )
+        {
+            if(R >= 0)
+            {
+                x0 = -2*pow(R, 1./3) - a1/3;
+                x1 = pow(R, 1./3) - a1/3;
+            }
+            else
+            {
+                x0 = 2*pow(-R, 1./3) - a1/3;
+                x1 = -pow(-R, 1./3) - a1/3;
+            }
+            x2 = 0;
+            n = x0 == x1 ? 1 : 2;
+            x1 = x0 == x1 ? 0 : x1;
+        }
         else
         {
             double e;
-            d = std::sqrt(-d);
-            e = std::pow(d + fabs(R), 0.333333333333);
+            d = sqrt(-d);
+            e = pow(d + fabs(R), 1./3);
             if( R > 0 )
                 e = -e;
             x0 = (e + Q / e) - a1 * (1./3);
