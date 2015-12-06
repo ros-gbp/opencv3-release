@@ -1,2 +1,0 @@
- RGB-Depth Processing module
-============================
