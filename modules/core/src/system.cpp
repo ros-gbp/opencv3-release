@@ -64,11 +64,13 @@ Mutex* __initialization_mutex_initializer = &getInitializationMutex();
 # endif
 #endif
 
-#if defined ANDROID || defined __linux__
+#if defined ANDROID || defined __linux__ || defined __FreeBSD__
 #  include <unistd.h>
 #  include <fcntl.h>
 #  include <elf.h>
+#if defined ANDROID || defined __linux__
 #  include <linux/auxvec.h>
+#endif
 #endif
 
 #if defined WIN32 || defined _WIN32 || defined WINCE
@@ -391,7 +393,9 @@ void setUseOptimized( bool flag )
     USE_SSE2 = currentFeatures->have[CV_CPU_SSE2];
 
     ipp::setUseIPP(flag);
+#ifdef HAVE_OPENCL
     ocl::setUseOpenCL(flag);
+#endif
 #ifdef HAVE_TEGRA_OPTIMIZATION
     ::tegra::setUseTegra(flag);
 #endif
