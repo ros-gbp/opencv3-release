@@ -381,16 +381,10 @@ bool checkHardwareSupport(int feature)
 
 volatile bool useOptimizedFlag = true;
 
-volatile bool USE_SSE2 = featuresEnabled.have[CV_CPU_SSE2];
-volatile bool USE_SSE4_2 = featuresEnabled.have[CV_CPU_SSE4_2];
-volatile bool USE_AVX = featuresEnabled.have[CV_CPU_AVX];
-volatile bool USE_AVX2 = featuresEnabled.have[CV_CPU_AVX2];
-
 void setUseOptimized( bool flag )
 {
     useOptimizedFlag = flag;
     currentFeatures = flag ? &featuresEnabled : &featuresDisabled;
-    USE_SSE2 = currentFeatures->have[CV_CPU_SSE2];
 
     ipp::setUseIPP(flag);
 #ifdef HAVE_OPENCL
