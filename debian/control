@@ -1,0 +1,12 @@
+Source: ros-indigo-opencv3
+Section: misc
+Priority: extra
+Maintainer: Vincent Rabaud <vincent.rabaud@gmail.com>
+Build-Depends: debhelper (>= 9.0.0), cmake, libavcodec-dev, libavformat-dev, libavutil-dev, libjasper-dev, libjpeg-dev, libpng12-dev, libqt4-dev, libqtgui4, libswscale-dev, libtiff5-dev, libv4l-dev, libvtk5-dev, python-dev, python-numpy, python-support, zlib1g-dev
+Homepage: http://opencvg.org
+Standards-Version: 3.9.2
+
+Package: ros-indigo-opencv3
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libavcodec-dev, libavformat-dev, libavutil-dev, libjasper-dev, libjpeg-dev, libpng12-dev, libqtgui4, libswscale-dev, libvtk5-dev, python-dev, python-numpy, python-support, ros-indigo-catkin, zlib1g-dev
+Description: OpenCV 3.0
