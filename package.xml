@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>opencv3</name>
-  <version>3.0.0</version>
+  <version>3.1.0</version>
   <description>OpenCV 3.0</description>
 
   <maintainer email="vincent.rabaud@gmail.com">Vincent Rabaud</maintainer>
