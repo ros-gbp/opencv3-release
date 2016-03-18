@@ -60,7 +60,7 @@ tracks:
     last_version: 3.1.0
     name: upstream
     patches: kinetic
-    release_inc: '3'
+    release_inc: '4'
     release_repo_url: null
     release_tag: :{ask}
     ros_distro: kinetic
