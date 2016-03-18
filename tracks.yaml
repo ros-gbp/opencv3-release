@@ -59,7 +59,7 @@ tracks:
     devel_branch: null
     last_version: 3.1.0
     name: upstream
-    patches: null
+    patches: kinetic
     release_inc: '3'
     release_repo_url: null
     release_tag: :{ask}
