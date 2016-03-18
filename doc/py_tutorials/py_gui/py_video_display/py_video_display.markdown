@@ -51,7 +51,8 @@ Otherwise open it using **cap.open()**.
 
 You can also access some of the features of this video using **cap.get(propId)** method where propId
 is a number from 0 to 18. Each number denotes a property of the video (if it is applicable to that
-video) and full details can be seen here: cv::VideoCapture::get() .
+video) and full details can be seen here: [Property
+Identifier](http://docs.opencv.org/modules/highgui/doc/reading_and_writing_video.html#videocapture-get).
 Some of these values can be modified using **cap.set(propId, value)**. Value is the new value you
 want.
 
