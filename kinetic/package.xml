@@ -20,6 +20,7 @@
   <build_depend>libqt5-gui</build_depend>
   <build_depend>libtiff-dev</build_depend>
   <build_depend>libv4l-dev</build_depend>
+  <build_depend>libvtk</build_depend>
   <build_depend>python</build_depend>
   <build_depend>python-numpy</build_depend>
   <build_depend>qtbase5-dev</build_depend>
@@ -33,6 +34,7 @@
   <run_depend>libjpeg</run_depend>
   <run_depend>libpng12-dev</run_depend>
   <run_depend>libqt5-gui</run_depend>
+  <run_depend>libvtk</run_depend>
   <run_depend>python</run_depend>
   <run_depend>python-numpy</run_depend>
   <run_depend>zlib</run_depend>
