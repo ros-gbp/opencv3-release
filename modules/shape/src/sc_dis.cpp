@@ -124,8 +124,10 @@ public:
     virtual void getImages(OutputArray _image1, OutputArray _image2) const
     {
         CV_Assert((!image1.empty()) && (!image2.empty()));
-        image1.copyTo(_image1);
-        image2.copyTo(_image2);
+        _image1.create(image1.size(), image1.type());
+        _image2.create(image2.size(), image2.type());
+        _image1.getMat()=image1;
+        _image2.getMat()=image2;
     }
 
     virtual void setIterations(int _iterations) {CV_Assert(_iterations>0); iterations=_iterations;}
