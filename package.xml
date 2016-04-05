@@ -13,8 +13,8 @@
 
   <author>The OpenCV team</author>
 
-  <build_depend>ffmpeg</build_depend>
   <build_depend>jasper</build_depend>
+  <build_depend>libav</build_depend>
   <build_depend>libjpeg</build_depend>
   <build_depend>libpng12-dev</build_depend>
   <build_depend>libqt5-gui</build_depend>
@@ -29,8 +29,8 @@
   <buildtool_depend>cmake</buildtool_depend>
 
   <run_depend>catkin</run_depend>
-  <run_depend>ffmpeg</run_depend>
   <run_depend>jasper</run_depend>
+  <run_depend>libav</run_depend>
   <run_depend>libjpeg</run_depend>
   <run_depend>libpng12-dev</run_depend>
   <run_depend>libqt5-gui</run_depend>
