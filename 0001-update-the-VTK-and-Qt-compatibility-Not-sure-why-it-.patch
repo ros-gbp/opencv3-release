@@ -1,4 +1,4 @@
-From d44135a10325b5e4b8312709a39eae09da499538 Mon Sep 17 00:00:00 2001
+From d8945d9c4cc458297f402c898c51877867e24e37 Mon Sep 17 00:00:00 2001
 From: Vincent Rabaud <vincent.rabaud@gmail.com>
 Date: Tue, 10 May 2016 22:19:42 +0200
 Subject: [PATCH] update the VTK and Qt compatibility Not sure why it's not
