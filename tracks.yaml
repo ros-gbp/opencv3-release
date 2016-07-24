@@ -45,6 +45,10 @@ tracks:
     version: :{ask}
   kinetic:
     actions:
+    - bloom-export-upstream :{vcs_local_uri} :{vcs_type} --tag :{release_tag} --display-uri
+      :{vcs_uri} --name :{name} --output-dir :{archive_dir_path}
+    - git-bloom-import-upstream :{archive_path} :{patches} --release-version :{version}
+      --replace
     - git-bloom-generate -y rosrelease :{ros_distro} --source upstream -i :{release_inc}
     - git-bloom-generate -y rosdebian --prefix release/:{ros_distro} :{ros_distro}
       -i :{release_inc} --os-name ubuntu
@@ -58,7 +62,7 @@ tracks:
     patches: kinetic
     release_inc: '15'
     release_repo_url: null
-    release_tag: :{ask}
+    release_tag: null
     ros_distro: kinetic
     vcs_type: tar
     vcs_uri: /home/vrabaud/workspace/ws_opencv3/tmp/opencv.tar.gz
