@@ -1,13 +1,8 @@
-// This file is part of OpenCV project.
-// It is subject to the license terms in the LICENSE file found in the top-level directory
-// of this distribution and at http://opencv.org/license.html.
-
 #ifndef CALIB_COMMON_HPP
 #define CALIB_COMMON_HPP
 
-#include <opencv2/core.hpp>
-
 #include <memory>
+#include <opencv2/core.hpp>
 #include <vector>
 #include <string>
 
@@ -28,7 +23,7 @@ namespace calib
     static const std::string consoleHelp = "Hot keys:\nesc - exit application\n"
                               "s - save current data to .xml file\n"
                               "r - delete last frame\n"
-                              "u - enable/disable applying undistortion\n"
+                              "u - enable/disable applying undistortion"
                               "d - delete all frames\n"
                               "v - switch visualization";
 

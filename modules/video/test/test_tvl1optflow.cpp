@@ -154,7 +154,7 @@ TEST(Video_calcOpticalFlowDual_TVL1, Regression)
     ASSERT_FALSE(frame2.empty());
 
     Mat_<Point2f> flow;
-    Ptr<DualTVL1OpticalFlow> tvl1 = cv::DualTVL1OpticalFlow::create();
+    Ptr<DenseOpticalFlow> tvl1 = createOptFlow_DualTVL1();
 
     tvl1->calc(frame1, frame2, flow);
 

@@ -108,23 +108,47 @@ Code
         bright on a darker background.
 
 -#  The tutorial code's is shown lines below. You can also download it from
-    [here](https://github.com/opencv/opencv/tree/master/samples/cpp/tutorial_code/ImgTrans/Sobel_Demo.cpp)
+    [here](https://github.com/Itseez/opencv/tree/master/samples/cpp/tutorial_code/ImgTrans/Sobel_Demo.cpp)
     @include samples/cpp/tutorial_code/ImgTrans/Sobel_Demo.cpp
 
 Explanation
 -----------
 
 -#  First we declare the variables we are going to use:
-    @snippet cpp/tutorial_code/ImgTrans/Sobel_Demo.cpp variables
+    @code{.cpp}
+    Mat src, src_gray;
+    Mat grad;
+    char* window_name = "Sobel Demo - Simple Edge Detector";
+    int scale = 1;
+    int delta = 0;
+    int ddepth = CV_16S;
+    @endcode
 -#  As usual we load our source image *src*:
-    @snippet cpp/tutorial_code/ImgTrans/Sobel_Demo.cpp load
+    @code{.cpp}
+    src = imread( argv[1] );
+
+    if( !src.data )
+    { return -1; }
+    @endcode
 -#  First, we apply a @ref cv::GaussianBlur to our image to reduce the noise ( kernel size = 3 )
-    @snippet cpp/tutorial_code/ImgTrans/Sobel_Demo.cpp reduce_noise
+    @code{.cpp}
+    GaussianBlur( src, src, Size(3,3), 0, 0, BORDER_DEFAULT );
+    @endcode
 -#  Now we convert our filtered image to grayscale:
-    @snippet cpp/tutorial_code/ImgTrans/Sobel_Demo.cpp convert_to_gray
+    @code{.cpp}
+    cvtColor( src, src_gray, COLOR_RGB2GRAY );
+    @endcode
 -#  Second, we calculate the "*derivatives*" in *x* and *y* directions. For this, we use the
     function @ref cv::Sobel as shown below:
-    @snippet cpp/tutorial_code/ImgTrans/Sobel_Demo.cpp sobel
+    @code{.cpp}
+    Mat grad_x, grad_y;
+    Mat abs_grad_x, abs_grad_y;
+
+    /// Gradient X
+    Sobel( src_gray, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
+    /// Gradient Y
+    Sobel( src_gray, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
+    @endcode
     The function takes the following arguments:
 
     -   *src_gray*: In our example, the input image. Here it is *CV_8U*
@@ -138,12 +162,19 @@ Explanation
     \f$y_{order} = 0\f$. We do analogously for the *y* direction.
 
 -#  We convert our partial results back to *CV_8U*:
-    @snippet cpp/tutorial_code/ImgTrans/Sobel_Demo.cpp convert
+    @code{.cpp}
+    convertScaleAbs( grad_x, abs_grad_x );
+    convertScaleAbs( grad_y, abs_grad_y );
+    @endcode
 -#  Finally, we try to approximate the *gradient* by adding both directional gradients (note that
     this is not an exact calculation at all! but it is good for our purposes).
-    @snippet cpp/tutorial_code/ImgTrans/Sobel_Demo.cpp blend
+    @code{.cpp}
+    addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad );
+    @endcode
 -#  Finally, we show our result:
-    @snippet cpp/tutorial_code/ImgTrans/Sobel_Demo.cpp display
+    @code{.cpp}
+    imshow( window_name, grad );
+    @endcode
 
 Results
 -------

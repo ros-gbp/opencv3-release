@@ -58,8 +58,6 @@ public:
 
     void process(InputArrayOfArrays src, OutputArray dst, InputArray _times, InputArray input_response)
     {
-        CV_INSTRUMENT_REGION()
-
         std::vector<Mat> images;
         src.getMatVector(images);
         Mat times = _times.getMat();
@@ -87,7 +85,7 @@ public:
         CV_Assert(log_response.rows == LDR_SIZE && log_response.cols == 1 &&
                   log_response.channels() == channels);
 
-        Mat exp_values(times.clone());
+        Mat exp_values(times);
         log(exp_values, exp_values);
 
         result = Mat::zeros(size, CV_32FCC);
@@ -124,8 +122,6 @@ public:
 
     void process(InputArrayOfArrays src, OutputArray dst, InputArray times)
     {
-        CV_INSTRUMENT_REGION()
-
         process(src, dst, times, Mat());
     }
 
@@ -152,15 +148,11 @@ public:
 
     void process(InputArrayOfArrays src, OutputArrayOfArrays dst, InputArray, InputArray)
     {
-        CV_INSTRUMENT_REGION()
-
         process(src, dst);
     }
 
     void process(InputArrayOfArrays src, OutputArray dst)
     {
-        CV_INSTRUMENT_REGION()
-
         std::vector<Mat> images;
         src.getMatVector(images);
         checkImageDimensions(images);
@@ -310,8 +302,6 @@ public:
 
     void process(InputArrayOfArrays src, OutputArray dst, InputArray _times, InputArray input_response)
     {
-        CV_INSTRUMENT_REGION()
-
         std::vector<Mat> images;
         src.getMatVector(images);
         Mat times = _times.getMat();
@@ -349,8 +339,6 @@ public:
 
     void process(InputArrayOfArrays src, OutputArray dst, InputArray times)
     {
-        CV_INSTRUMENT_REGION()
-
         process(src, dst, times, Mat());
     }
 
