@@ -1,11 +1,31 @@
+#include "test_precomp.hpp"
 #include "test_intrin_utils.hpp"
 #include <climits>
 
 using namespace cv;
 
+namespace cvtest { namespace hal {
+
+template<typename T> static inline void EXPECT_COMPARE_EQ_(const T a, const T b);
+template<> inline void EXPECT_COMPARE_EQ_<float>(const float a, const float b)
+{
+    EXPECT_FLOAT_EQ( a, b );
+}
+
+template<> inline void EXPECT_COMPARE_EQ_<double>(const double a, const double b)
+{
+    EXPECT_DOUBLE_EQ( a, b );
+}
+
 template<typename R> struct TheTest
 {
     typedef typename R::lane_type LaneType;
+
+    template <typename T1, typename T2>
+    static inline void EXPECT_COMPARE_EQ(const T1 a, const T2 b)
+    {
+        EXPECT_COMPARE_EQ_<LaneType>((LaneType)a, (LaneType)b);
+    }
 
     TheTest & test_loadstore()
     {
@@ -50,8 +70,8 @@ template<typename R> struct TheTest
         EXPECT_EQ(d, res);
 
         // zero, all
-        Data<R> resZ = RegTrait<R>::zero();
-        Data<R> resV = RegTrait<R>::all(8);
+        Data<R> resZ = V_RegTrait128<LaneType>::zero();
+        Data<R> resV = V_RegTrait128<LaneType>::all(8);
         for (int i = 0; i < R::nlanes; ++i)
         {
             EXPECT_EQ((LaneType)0, resZ[i]);
@@ -113,10 +133,36 @@ template<typename R> struct TheTest
         return *this;
     }
 
+    // float32x4 only
+    TheTest & test_interleave_2channel()
+    {
+        Data<R> data1, data2;
+        data2 += 20;
+
+        R a = data1, b = data2;
+
+        LaneType buf2[R::nlanes * 2];
+
+        v_store_interleave(buf2, a, b);
+
+        Data<R> z(0);
+        a = b = z;
+
+        v_load_deinterleave(buf2, a, b);
+
+        for (int i = 0; i < R::nlanes; ++i)
+        {
+            EXPECT_EQ(data1, Data<R>(a));
+            EXPECT_EQ(data2, Data<R>(b));
+        }
+
+        return *this;
+    }
+
     // v_expand and v_load_expand
     TheTest & test_expand()
     {
-        typedef typename RegTrait<R>::w_reg Rx2;
+        typedef typename V_RegTrait128<LaneType>::w_reg Rx2;
         Data<R> dataA;
         R a = dataA;
 
@@ -139,7 +185,7 @@ template<typename R> struct TheTest
 
     TheTest & test_expand_q()
     {
-        typedef typename RegTrait<R>::q_reg Rx4;
+        typedef typename V_RegTrait128<LaneType>::q_reg Rx4;
         Data<R> data;
         Data<Rx4> out = v_load_expand_q(data.d);
         const int n = Rx4::nlanes;
@@ -213,7 +259,7 @@ template<typename R> struct TheTest
 
     TheTest & test_mul_expand()
     {
-        typedef typename RegTrait<R>::w_reg Rx2;
+        typedef typename V_RegTrait128<LaneType>::w_reg Rx2;
         Data<R> dataA, dataB(2);
         R a = dataA, b = dataB;
         Rx2 c, d;
@@ -276,7 +322,7 @@ template<typename R> struct TheTest
 
     TheTest & test_dot_prod()
     {
-        typedef typename RegTrait<R>::w_reg Rx2;
+        typedef typename V_RegTrait128<LaneType>::w_reg Rx2;
         Data<R> dataA, dataB(2);
         R a = dataA, b = dataB;
 
@@ -316,9 +362,9 @@ template<typename R> struct TheTest
         Data<R> resB = v_sqrt(a), resC = v_invsqrt(a), resE = v_abs(d);
         for (int i = 0; i < R::nlanes; ++i)
         {
-            EXPECT_FLOAT_EQ((float)std::sqrt(dataA[i]), (float)resB[i]);
-            EXPECT_FLOAT_EQ(1/(float)std::sqrt(dataA[i]), (float)resC[i]);
-            EXPECT_FLOAT_EQ((float)abs(dataA[i]), (float)resE[i]);
+            EXPECT_COMPARE_EQ((float)std::sqrt(dataA[i]), (float)resB[i]);
+            EXPECT_COMPARE_EQ(1/(float)std::sqrt(dataA[i]), (float)resC[i]);
+            EXPECT_COMPARE_EQ((float)abs(dataA[i]), (float)resE[i]);
         }
 
         return *this;
@@ -342,7 +388,7 @@ template<typename R> struct TheTest
 
     TheTest & test_absdiff()
     {
-        typedef typename RegTrait<R>::u_reg Ru;
+        typedef typename V_RegTrait128<LaneType>::u_reg Ru;
         typedef typename Ru::lane_type u_type;
         Data<R> dataA(std::numeric_limits<LaneType>::max()),
                 dataB(std::numeric_limits<LaneType>::min());
@@ -426,7 +472,7 @@ template<typename R> struct TheTest
     template <int s>
     TheTest & test_pack()
     {
-        typedef typename RegTrait<R>::w_reg Rx2;
+        typedef typename V_RegTrait128<LaneType>::w_reg Rx2;
         typedef typename Rx2::lane_type w_type;
         Data<Rx2> dataA, dataB;
         dataA += std::numeric_limits<LaneType>::is_signed ? -10 : 10;
@@ -461,8 +507,8 @@ template<typename R> struct TheTest
     template <int s>
     TheTest & test_pack_u()
     {
-        typedef typename RegTrait<R>::w_reg Rx2;
-        typedef typename RegTrait<Rx2>::int_reg Ri2;
+        typedef typename V_TypeTraits<LaneType>::w_type LaneType_w;
+        typedef typename V_RegTrait128<LaneType_w>::int_reg Ri2;
         typedef typename Ri2::lane_type w_type;
 
         Data<Ri2> dataA, dataB;
@@ -553,7 +599,7 @@ template<typename R> struct TheTest
 
     TheTest & test_float_math()
     {
-        typedef typename RegTrait<R>::int_reg Ri;
+        typedef typename V_RegTrait128<LaneType>::int_reg Ri;
         Data<R> data1, data2, data3;
         data1 *= 1.1;
         data2 += 10;
@@ -575,9 +621,9 @@ template<typename R> struct TheTest
             EXPECT_EQ(cvFloor(data1[i]), resD[i]);
             EXPECT_EQ(cvCeil(data1[i]), resE[i]);
 
-            EXPECT_DOUBLE_EQ(std::sqrt(data1[i]*data1[i] + data2[i]*data2[i]), resF[i]);
-            EXPECT_DOUBLE_EQ(data1[i]*data1[i] + data2[i]*data2[i], resG[i]);
-            EXPECT_DOUBLE_EQ(data1[i]*data2[i] + data3[i], resH[i]);
+            EXPECT_COMPARE_EQ(std::sqrt(data1[i]*data1[i] + data2[i]*data2[i]), resF[i]);
+            EXPECT_COMPARE_EQ(data1[i]*data1[i] + data2[i]*data2[i], resG[i]);
+            EXPECT_COMPARE_EQ(data1[i]*data2[i] + data3[i], resH[i]);
         }
 
         return *this;
@@ -607,11 +653,17 @@ template<typename R> struct TheTest
         dataA *= 1.1;
         R a = dataA;
         Rt b = v_cvt_f64(a);
+        Rt c = v_cvt_f64_high(a);
         Data<Rt> resB = b;
+        Data<Rt> resC = c;
         int n = std::min<int>(Rt::nlanes, R::nlanes);
         for (int i = 0; i < n; ++i)
         {
             EXPECT_EQ((typename Rt::lane_type)dataA[i], resB[i]);
+        }
+        for (int i = 0; i < n; ++i)
+        {
+            EXPECT_EQ((typename Rt::lane_type)dataA[i+n], resC[i]);
         }
 #endif
         return *this;
@@ -658,6 +710,49 @@ template<typename R> struct TheTest
         }
         return *this;
     }
+
+#if CV_FP16
+    TheTest & test_loadstore_fp16()
+    {
+        AlignedData<R> data;
+        AlignedData<R> out;
+
+        // check if addresses are aligned and unaligned respectively
+        EXPECT_EQ((size_t)0, (size_t)&data.a.d % 16);
+        EXPECT_NE((size_t)0, (size_t)&data.u.d % 16);
+        EXPECT_EQ((size_t)0, (size_t)&out.a.d % 16);
+        EXPECT_NE((size_t)0, (size_t)&out.u.d % 16);
+
+        // check some initialization methods
+        R r1 = data.u;
+        R r2 = v_load_f16(data.a.d);
+        R r3(r2);
+        EXPECT_EQ(data.u[0], r1.get0());
+        EXPECT_EQ(data.a[0], r2.get0());
+        EXPECT_EQ(data.a[0], r3.get0());
+
+        // check some store methods
+        out.a.clear();
+        v_store_f16(out.a.d, r1);
+        EXPECT_EQ(data.a, out.a);
+
+        return *this;
+    }
+
+    TheTest & test_float_cvt_fp16()
+    {
+        AlignedData<v_float32x4> data;
+
+        // check conversion
+        v_float32x4 r1 = v_load(data.a.d);
+        v_float16x4 r2 = v_cvt_f16(r1);
+        v_float32x4 r3 = v_cvt_f32(r2);
+        EXPECT_EQ(0x3c00, r2.get0());
+        EXPECT_EQ(r3.get0(), r1.get0());
+
+        return *this;
+    }
+#endif
 
 };
 
@@ -827,6 +922,7 @@ TEST(hal_intrin, float32x4) {
     TheTest<v_float32x4>()
         .test_loadstore()
         .test_interleave()
+        .test_interleave_2channel()
         .test_addsub()
         .test_mul()
         .test_div()
@@ -862,3 +958,16 @@ TEST(hal_intrin, float64x2) {
         ;
 }
 #endif
+
+#if CV_FP16
+TEST(hal_intrin, float16x4) {
+    TheTest<v_float16x4>()
+        .test_loadstore_fp16()
+        .test_float_cvt_fp16()
+        ;
+}
+#endif
+
+};
+
+};
