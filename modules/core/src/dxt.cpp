@@ -469,53 +469,53 @@ template<> struct DFT_VecR4<float>
 static IppStatus ippsDFTFwd_CToC( const Complex<float>* src, Complex<float>* dst,
                              const void* spec, uchar* buf)
 {
-    return CV_INSTRUMENT_FUN_IPP(ippsDFTFwd_CToC_32fc, (const Ipp32fc*)src, (Ipp32fc*)dst,
+    return ippsDFTFwd_CToC_32fc( (const Ipp32fc*)src, (Ipp32fc*)dst,
                                  (const IppsDFTSpec_C_32fc*)spec, buf);
 }
 
 static IppStatus ippsDFTFwd_CToC( const Complex<double>* src, Complex<double>* dst,
                              const void* spec, uchar* buf)
 {
-    return CV_INSTRUMENT_FUN_IPP(ippsDFTFwd_CToC_64fc, (const Ipp64fc*)src, (Ipp64fc*)dst,
+    return ippsDFTFwd_CToC_64fc( (const Ipp64fc*)src, (Ipp64fc*)dst,
                                  (const IppsDFTSpec_C_64fc*)spec, buf);
 }
 
 static IppStatus ippsDFTInv_CToC( const Complex<float>* src, Complex<float>* dst,
                              const void* spec, uchar* buf)
 {
-    return CV_INSTRUMENT_FUN_IPP(ippsDFTInv_CToC_32fc, (const Ipp32fc*)src, (Ipp32fc*)dst,
+    return ippsDFTInv_CToC_32fc( (const Ipp32fc*)src, (Ipp32fc*)dst,
                                  (const IppsDFTSpec_C_32fc*)spec, buf);
 }
 
 static IppStatus ippsDFTInv_CToC( const Complex<double>* src, Complex<double>* dst,
                                   const void* spec, uchar* buf)
 {
-    return CV_INSTRUMENT_FUN_IPP(ippsDFTInv_CToC_64fc, (const Ipp64fc*)src, (Ipp64fc*)dst,
+    return ippsDFTInv_CToC_64fc( (const Ipp64fc*)src, (Ipp64fc*)dst,
                                  (const IppsDFTSpec_C_64fc*)spec, buf);
 }
 
 static IppStatus ippsDFTFwd_RToPack( const float* src, float* dst,
                                      const void* spec, uchar* buf)
 {
-    return CV_INSTRUMENT_FUN_IPP(ippsDFTFwd_RToPack_32f, src, dst, (const IppsDFTSpec_R_32f*)spec, buf);
+    return ippsDFTFwd_RToPack_32f( src, dst, (const IppsDFTSpec_R_32f*)spec, buf);
 }
 
 static IppStatus ippsDFTFwd_RToPack( const double* src, double* dst,
                                      const void* spec, uchar* buf)
 {
-    return CV_INSTRUMENT_FUN_IPP(ippsDFTFwd_RToPack_64f, src, dst, (const IppsDFTSpec_R_64f*)spec, buf);
+    return ippsDFTFwd_RToPack_64f( src, dst, (const IppsDFTSpec_R_64f*)spec, buf);
 }
 
 static IppStatus ippsDFTInv_PackToR( const float* src, float* dst,
                                      const void* spec, uchar* buf)
 {
-    return CV_INSTRUMENT_FUN_IPP(ippsDFTInv_PackToR_32f, src, dst, (const IppsDFTSpec_R_32f*)spec, buf);
+    return ippsDFTInv_PackToR_32f( src, dst, (const IppsDFTSpec_R_32f*)spec, buf);
 }
 
 static IppStatus ippsDFTInv_PackToR( const double* src, double* dst,
                                      const void* spec, uchar* buf)
 {
-    return CV_INSTRUMENT_FUN_IPP(ippsDFTInv_PackToR_64f, src, dst, (const IppsDFTSpec_R_64f*)spec, buf);
+    return ippsDFTInv_PackToR_64f( src, dst, (const IppsDFTSpec_R_64f*)spec, buf);
 }
 #endif
 
@@ -1564,8 +1564,6 @@ public:
 
     virtual void operator()(const Range& range) const
     {
-        CV_INSTRUMENT_REGION_IPP();
-
         IppStatus status;
         Ipp8u* pBuffer = 0;
         Ipp8u* pMemInit= 0;
@@ -1647,8 +1645,6 @@ public:
 
     virtual void operator()(const Range& range) const
     {
-        CV_INSTRUMENT_REGION_IPP();
-
         IppStatus status;
         Ipp8u* pBuffer = 0;
         Ipp8u* pMemInit= 0;
@@ -1732,32 +1728,30 @@ bool Dft_R_IPPLoop(const uchar * src, size_t src_step, uchar * dst, size_t dst_s
 
 struct IPPDFT_C_Functor
 {
-    IPPDFT_C_Functor(ippiDFT_C_Func _func) : ippiDFT_CToC_32fc_C1R(_func){}
+    IPPDFT_C_Functor(ippiDFT_C_Func _func) : func(_func){}
 
     bool operator()(const Ipp32fc* src, size_t srcStep, Ipp32fc* dst, size_t dstStep, const IppiDFTSpec_C_32fc* pDFTSpec, Ipp8u* pBuffer) const
     {
-        return ippiDFT_CToC_32fc_C1R ? CV_INSTRUMENT_FUN_IPP(ippiDFT_CToC_32fc_C1R, src, static_cast<int>(srcStep), dst, static_cast<int>(dstStep), pDFTSpec, pBuffer) >= 0 : false;
+        return func ? func(src, static_cast<int>(srcStep), dst, static_cast<int>(dstStep), pDFTSpec, pBuffer) >= 0 : false;
     }
 private:
-    ippiDFT_C_Func ippiDFT_CToC_32fc_C1R;
+    ippiDFT_C_Func func;
 };
 
 struct IPPDFT_R_Functor
 {
-    IPPDFT_R_Functor(ippiDFT_R_Func _func) : ippiDFT_PackToR_32f_C1R(_func){}
+    IPPDFT_R_Functor(ippiDFT_R_Func _func) : func(_func){}
 
     bool operator()(const Ipp32f* src, size_t srcStep, Ipp32f* dst, size_t dstStep, const IppiDFTSpec_R_32f* pDFTSpec, Ipp8u* pBuffer) const
     {
-        return ippiDFT_PackToR_32f_C1R ? CV_INSTRUMENT_FUN_IPP(ippiDFT_PackToR_32f_C1R, src, static_cast<int>(srcStep), dst, static_cast<int>(dstStep), pDFTSpec, pBuffer) >= 0 : false;
+        return func ? func(src, static_cast<int>(srcStep), dst, static_cast<int>(dstStep), pDFTSpec, pBuffer) >= 0 : false;
     }
 private:
-    ippiDFT_R_Func ippiDFT_PackToR_32f_C1R;
+    ippiDFT_R_Func func;
 };
 
 static bool ippi_DFT_C_32F(const uchar * src, size_t src_step, uchar * dst, size_t dst_step, int width, int height, bool inv, int norm_flag)
 {
-    CV_INSTRUMENT_REGION_IPP()
-
     IppStatus status;
     Ipp8u* pBuffer = 0;
     Ipp8u* pMemInit= 0;
@@ -1793,9 +1787,9 @@ static bool ippi_DFT_C_32F(const uchar * src, size_t src_step, uchar * dst, size
     }
 
     if (!inv)
-        status = CV_INSTRUMENT_FUN_IPP(ippiDFTFwd_CToC_32fc_C1R, (Ipp32fc*)src, static_cast<int>(src_step), (Ipp32fc*)dst, static_cast<int>(dst_step), pDFTSpec, pBuffer);
+        status = ippiDFTFwd_CToC_32fc_C1R( (Ipp32fc*)src, static_cast<int>(src_step), (Ipp32fc*)dst, static_cast<int>(dst_step), pDFTSpec, pBuffer );
     else
-        status = CV_INSTRUMENT_FUN_IPP(ippiDFTInv_CToC_32fc_C1R, (Ipp32fc*)src, static_cast<int>(src_step), (Ipp32fc*)dst, static_cast<int>(dst_step), pDFTSpec, pBuffer);
+        status = ippiDFTInv_CToC_32fc_C1R( (Ipp32fc*)src, static_cast<int>(src_step), (Ipp32fc*)dst, static_cast<int>(dst_step), pDFTSpec, pBuffer );
 
     if ( sizeBuffer > 0 )
         ippFree( pBuffer );
@@ -1812,8 +1806,6 @@ static bool ippi_DFT_C_32F(const uchar * src, size_t src_step, uchar * dst, size
 
 static bool ippi_DFT_R_32F(const uchar * src, size_t src_step, uchar * dst, size_t dst_step, int width, int height, bool inv, int norm_flag)
 {
-    CV_INSTRUMENT_REGION_IPP()
-
     IppStatus status;
     Ipp8u* pBuffer = 0;
     Ipp8u* pMemInit= 0;
@@ -1849,9 +1841,9 @@ static bool ippi_DFT_R_32F(const uchar * src, size_t src_step, uchar * dst, size
     }
 
     if (!inv)
-        status = CV_INSTRUMENT_FUN_IPP(ippiDFTFwd_RToPack_32f_C1R, (float*)src, static_cast<int>(src_step), (float*)dst, static_cast<int>(dst_step), pDFTSpec, pBuffer);
+        status = ippiDFTFwd_RToPack_32f_C1R( (float*)src, static_cast<int>(src_step), (float*)dst, static_cast<int>(dst_step), pDFTSpec, pBuffer );
     else
-        status = CV_INSTRUMENT_FUN_IPP(ippiDFTInv_PackToR_32f_C1R, (float*)src, static_cast<int>(src_step), (float*)dst, static_cast<int>(dst_step), pDFTSpec, pBuffer);
+        status = ippiDFTInv_PackToR_32f_C1R( (float*)src, static_cast<int>(src_step), (float*)dst, static_cast<int>(dst_step), pDFTSpec, pBuffer );
 
     if ( sizeBuffer > 0 )
         ippFree( pBuffer );
@@ -3326,8 +3318,6 @@ Ptr<DFT2D> DFT2D::create(int width, int height, int depth,
 
 void cv::dft( InputArray _src0, OutputArray _dst, int flags, int nonzero_rows )
 {
-    CV_INSTRUMENT_REGION()
-
 #ifdef HAVE_CLAMDFFT
     CV_OCL_RUN(ocl::haveAmdFft() && ocl::Device::getDefault().type() != ocl::Device::TYPE_CPU &&
             _dst.isUMat() && _src0.dims() <= 2 && nonzero_rows == 0,
@@ -3373,8 +3363,6 @@ void cv::dft( InputArray _src0, OutputArray _dst, int flags, int nonzero_rows )
 
 void cv::idft( InputArray src, OutputArray dst, int flags, int nonzero_rows )
 {
-    CV_INSTRUMENT_REGION()
-
     dft( src, dst, flags | DFT_INVERSE, nonzero_rows );
 }
 
@@ -3419,8 +3407,6 @@ static bool ocl_mulSpectrums( InputArray _srcA, InputArray _srcB,
 void cv::mulSpectrums( InputArray _srcA, InputArray _srcB,
                        OutputArray _dst, int flags, bool conjB )
 {
-    CV_INSTRUMENT_REGION()
-
     CV_OCL_RUN(_dst.isUMat() && _srcA.dims() <= 2 && _srcB.dims() <= 2,
             ocl_mulSpectrums(_srcA, _srcB, _dst, flags, conjB))
 
@@ -3809,8 +3795,6 @@ public:
 
     virtual void operator()(const Range& range) const
     {
-        CV_INSTRUMENT_REGION_IPP()
-
         if(*ok == false)
             return;
 
@@ -3834,7 +3818,7 @@ public:
                 ippFree(pInitBuf);      \
             return;
 
-        ippiDCTFunc     ippiDCT_32f_C1R   = inv ? (ippiDCTFunc)ippiDCTInv_32f_C1R         : (ippiDCTFunc)ippiDCTFwd_32f_C1R;
+        ippiDCTFunc     ippDctFun   = inv ? (ippiDCTFunc)ippiDCTInv_32f_C1R         : (ippiDCTFunc)ippiDCTFwd_32f_C1R;
         ippiDCTInit     ippDctInit     = inv ? (ippiDCTInit)ippiDCTInvInit_32f         : (ippiDCTInit)ippiDCTFwdInit_32f;
         ippiDCTGetSize  ippDctGetSize  = inv ? (ippiDCTGetSize)ippiDCTInvGetSize_32f   : (ippiDCTGetSize)ippiDCTFwdGetSize_32f;
 
@@ -3872,7 +3856,7 @@ public:
 
         for(int i = range.start; i < range.end; ++i)
         {
-            if(CV_INSTRUMENT_FUN_IPP(ippiDCT_32f_C1R, (float*)(src + src_step * i), static_cast<int>(src_step), (float*)(dst + dst_step * i), static_cast<int>(dst_step), pDCTSpec, pBuffer) < 0)
+            if(ippDctFun((float*)(src + src_step * i), static_cast<int>(src_step), (float*)(dst + dst_step * i), static_cast<int>(dst_step), pDCTSpec, pBuffer) < 0)
             {
                 *ok = false;
                 IPP_RETURN
@@ -3941,8 +3925,6 @@ static bool DctIPPLoop(const uchar * src, size_t src_step, uchar * dst, size_t d
 
 static bool ippi_DCT_32f(const uchar * src, size_t src_step, uchar * dst, size_t dst_step, int width, int height, bool inv, bool row)
 {
-    CV_INSTRUMENT_REGION_IPP()
-
     if(row)
         return DctIPPLoop(src, src_step, dst, dst_step, width, height, inv);
     else
@@ -3966,7 +3948,7 @@ static bool ippi_DCT_32f(const uchar * src, size_t src_step, uchar * dst, size_t
             if(pInitBuf)                \
                 ippFree(pInitBuf);      \
 
-        ippiDCTFunc     ippiDCT_32f_C1R      = inv ? (ippiDCTFunc)ippiDCTInv_32f_C1R         : (ippiDCTFunc)ippiDCTFwd_32f_C1R;
+        ippiDCTFunc     ippDctFun      = inv ? (ippiDCTFunc)ippiDCTInv_32f_C1R         : (ippiDCTFunc)ippiDCTFwd_32f_C1R;
         ippiDCTInit     ippDctInit     = inv ? (ippiDCTInit)ippiDCTInvInit_32f         : (ippiDCTInit)ippiDCTFwdInit_32f;
         ippiDCTGetSize  ippDctGetSize  = inv ? (ippiDCTGetSize)ippiDCTInvGetSize_32f   : (ippiDCTGetSize)ippiDCTFwdGetSize_32f;
 
@@ -3996,7 +3978,7 @@ static bool ippi_DCT_32f(const uchar * src, size_t src_step, uchar * dst, size_t
             return false;
         }
 
-        if(CV_INSTRUMENT_FUN_IPP(ippiDCT_32f_C1R, (float*)src, static_cast<int>(src_step), (float*)dst, static_cast<int>(dst_step), pDCTSpec, pBuffer) < 0)
+        if(ippDctFun((float*)src, static_cast<int>(src_step), (float*)dst, static_cast<int>(dst_step), pDCTSpec, pBuffer) < 0)
         {
             IPP_RELEASE
             return false;
@@ -4236,8 +4218,6 @@ Ptr<DCT2D> DCT2D::create(int width, int height, int depth, int flags)
 
 void cv::dct( InputArray _src0, OutputArray _dst, int flags )
 {
-    CV_INSTRUMENT_REGION()
-
     Mat src0 = _src0.getMat(), src = src0;
     int type = src.type(), depth = src.depth();
 
@@ -4260,8 +4240,6 @@ void cv::dct( InputArray _src0, OutputArray _dst, int flags )
 
 void cv::idct( InputArray src, OutputArray dst, int flags )
 {
-    CV_INSTRUMENT_REGION()
-
     dct( src, dst, flags | DCT_INVERSE );
 }
 

@@ -78,7 +78,6 @@ static inline void spatialGradientKernel( T& vx, T& vy,
 void spatialGradient( InputArray _src, OutputArray _dx, OutputArray _dy,
                       int ksize, int borderType )
 {
-    CV_INSTRUMENT_REGION()
 
     // Prepare InputArray src
     Mat src = _src.getMat();

@@ -147,8 +147,6 @@ void GainCompensator::feed(const std::vector<Point> &corners, const std::vector<
 
 void GainCompensator::apply(int index, Point /*corner*/, InputOutputArray image, InputArray /*mask*/)
 {
-    CV_INSTRUMENT_REGION()
-
     multiply(image, gains_(index, 0), image);
 }
 
@@ -227,8 +225,6 @@ void BlocksGainCompensator::feed(const std::vector<Point> &corners, const std::v
 
 void BlocksGainCompensator::apply(int index, Point /*corner*/, InputOutputArray _image, InputArray /*mask*/)
 {
-    CV_INSTRUMENT_REGION()
-
     CV_Assert(_image.type() == CV_8UC3);
 
     UMat u_gain_map;

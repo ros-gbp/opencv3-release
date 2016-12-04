@@ -66,7 +66,7 @@ Code
 ----
 
 This tutorial code's is shown lines below. You can also download it from
-[here](https://github.com/opencv/opencv/tree/master/samples/cpp/tutorial_code/ImgProc/Pyramids.cpp)
+[here](https://github.com/Itseez/opencv/tree/master/samples/cpp/tutorial_code/ImgProc/Pyramids.cpp)
 
 @include samples/cpp/tutorial_code/ImgProc/Pyramids.cpp
 
@@ -77,7 +77,13 @@ Let's check the general structure of the program:
 
 -   Load an image (in this case it is defined in the program, the user does not have to enter it
     as an argument)
-    @snippet cpp/tutorial_code/ImgProc/Pyramids.cpp load
+    @code{.cpp}
+    /// Test image - Make sure it s divisible by 2^{n}
+    src = imread( "../images/chicky_512.jpg" );
+    if( !src.data )
+      { printf(" No data! -- Exiting the program \n");
+        return -1; }
+    @endcode
 
 -   Create a Mat object to store the result of the operations (*dst*) and one to save temporal
     results (*tmp*).
@@ -89,15 +95,40 @@ Let's check the general structure of the program:
     @endcode
 
 -   Create a window to display the result
-    @snippet cpp/tutorial_code/ImgProc/Pyramids.cpp create_window
+    @code{.cpp}
+    namedWindow( window_name, WINDOW_AUTOSIZE );
+    imshow( window_name, dst );
+    @endcode
 
 -   Perform an infinite loop waiting for user input.
-    @snippet cpp/tutorial_code/ImgProc/Pyramids.cpp infinite_loop
+    @code{.cpp}
+    while( true )
+    {
+      int c;
+      c = waitKey(10);
+
+      if( (char)c == 27 )
+        { break; }
+      if( (char)c == 'u' )
+        { pyrUp( tmp, dst, Size( tmp.cols*2, tmp.rows*2 ) );
+          printf( "** Zoom In: Image x 2 \n" );
+        }
+      else if( (char)c == 'd' )
+       { pyrDown( tmp, dst, Size( tmp.cols/2, tmp.rows/2 ) );
+         printf( "** Zoom Out: Image / 2 \n" );
+       }
+
+      imshow( window_name, dst );
+      tmp = dst;
+    }
+    @endcode
     Our program exits if the user presses *ESC*. Besides, it has two options:
 
     -   **Perform upsampling (after pressing 'u')**
-        @snippet cpp/tutorial_code/ImgProc/Pyramids.cpp pyrup
-        We use the function @ref cv::pyrUp with three arguments:
+        @code{.cpp}
+        pyrUp( tmp, dst, Size( tmp.cols*2, tmp.rows*2 )
+        @endcode
+        We use the function @ref cv::pyrUp with 03 arguments:
 
         -   *tmp*: The current image, it is initialized with the *src* original image.
         -   *dst*: The destination image (to be shown on screen, supposedly the double of the
@@ -105,8 +136,11 @@ Let's check the general structure of the program:
         -   *Size( tmp.cols*2, tmp.rows\*2 )\* : The destination size. Since we are upsampling,
             @ref cv::pyrUp expects a size double than the input image (in this case *tmp*).
     -   **Perform downsampling (after pressing 'd')**
-        @snippet cpp/tutorial_code/ImgProc/Pyramids.cpp pyrdown
-        Similarly as with @ref cv::pyrUp , we use the function @ref cv::pyrDown with three arguments:
+        @code{.cpp}
+        pyrDown( tmp, dst, Size( tmp.cols/2, tmp.rows/2 )
+        @endcode
+        Similarly as with @ref cv::pyrUp , we use the function @ref cv::pyrDown with 03
+        arguments:
 
         -   *tmp*: The current image, it is initialized with the *src* original image.
         -   *dst*: The destination image (to be shown on screen, supposedly half the input
@@ -117,13 +151,15 @@ Let's check the general structure of the program:
         both dimensions). Otherwise, an error will be shown.
     -   Finally, we update the input image **tmp** with the current image displayed, so the
         subsequent operations are performed on it.
-        @snippet cpp/tutorial_code/ImgProc/Pyramids.cpp update_tmp
+        @code{.cpp}
+        tmp = dst;
+        @endcode
 
 Results
 -------
 
 -   After compiling the code above we can test it. The program calls an image **chicky_512.jpg**
-    that comes in the *samples/data* folder. Notice that this image is \f$512 \times 512\f$,
+    that comes in the *tutorial_code/image* folder. Notice that this image is \f$512 \times 512\f$,
     hence a downsample won't generate any error (\f$512 = 2^{9}\f$). The original image is shown below:
 
     ![](images/Pyramids_Tutorial_Original_Image.jpg)
