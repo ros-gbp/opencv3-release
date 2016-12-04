@@ -62,8 +62,6 @@ public:
 
     void process(InputArray _src, OutputArray _dst)
     {
-        CV_INSTRUMENT_REGION()
-
         Mat src = _src.getMat();
         CV_Assert(!src.empty());
         _dst.create(src.size(), CV_32FC3);
@@ -120,8 +118,6 @@ public:
 
     void process(InputArray _src, OutputArray _dst)
     {
-        CV_INSTRUMENT_REGION()
-
         Mat src = _src.getMat();
         CV_Assert(!src.empty());
         _dst.create(src.size(), CV_32FC3);
@@ -207,8 +203,6 @@ public:
 
     void process(InputArray _src, OutputArray _dst)
     {
-        CV_INSTRUMENT_REGION()
-
         Mat src = _src.getMat();
         CV_Assert(!src.empty());
         _dst.create(src.size(), CV_32FC3);
@@ -294,8 +288,6 @@ public:
 
     void process(InputArray _src, OutputArray _dst)
     {
-        CV_INSTRUMENT_REGION()
-
         Mat src = _src.getMat();
         CV_Assert(!src.empty());
         _dst.create(src.size(), CV_32FC3);
@@ -391,8 +383,6 @@ public:
 
     void process(InputArray _src, OutputArray _dst)
     {
-        CV_INSTRUMENT_REGION()
-
         Mat src = _src.getMat();
         CV_Assert(!src.empty());
         _dst.create(src.size(), CV_32FC3);

@@ -369,78 +369,58 @@ static BinaryFuncC* getMinTab()
 
 void cv::bitwise_and(InputArray a, InputArray b, OutputArray c, InputArray mask)
 {
-    CV_INSTRUMENT_REGION()
-
     BinaryFuncC f = (BinaryFuncC)GET_OPTIMIZED(cv::hal::and8u);
     binary_op(a, b, c, mask, &f, true, OCL_OP_AND);
 }
 
 void cv::bitwise_or(InputArray a, InputArray b, OutputArray c, InputArray mask)
 {
-    CV_INSTRUMENT_REGION()
-
     BinaryFuncC f = (BinaryFuncC)GET_OPTIMIZED(cv::hal::or8u);
     binary_op(a, b, c, mask, &f, true, OCL_OP_OR);
 }
 
 void cv::bitwise_xor(InputArray a, InputArray b, OutputArray c, InputArray mask)
 {
-    CV_INSTRUMENT_REGION()
-
     BinaryFuncC f = (BinaryFuncC)GET_OPTIMIZED(cv::hal::xor8u);
     binary_op(a, b, c, mask, &f, true, OCL_OP_XOR);
 }
 
 void cv::bitwise_not(InputArray a, OutputArray c, InputArray mask)
 {
-    CV_INSTRUMENT_REGION()
-
     BinaryFuncC f = (BinaryFuncC)GET_OPTIMIZED(cv::hal::not8u);
     binary_op(a, a, c, mask, &f, true, OCL_OP_NOT);
 }
 
 void cv::max( InputArray src1, InputArray src2, OutputArray dst )
 {
-    CV_INSTRUMENT_REGION()
-
     binary_op(src1, src2, dst, noArray(), getMaxTab(), false, OCL_OP_MAX );
 }
 
 void cv::min( InputArray src1, InputArray src2, OutputArray dst )
 {
-    CV_INSTRUMENT_REGION()
-
     binary_op(src1, src2, dst, noArray(), getMinTab(), false, OCL_OP_MIN );
 }
 
 void cv::max(const Mat& src1, const Mat& src2, Mat& dst)
 {
-    CV_INSTRUMENT_REGION()
-
     OutputArray _dst(dst);
     binary_op(src1, src2, _dst, noArray(), getMaxTab(), false, OCL_OP_MAX );
 }
 
 void cv::min(const Mat& src1, const Mat& src2, Mat& dst)
 {
-    CV_INSTRUMENT_REGION()
-
     OutputArray _dst(dst);
     binary_op(src1, src2, _dst, noArray(), getMinTab(), false, OCL_OP_MIN );
 }
 
 void cv::max(const UMat& src1, const UMat& src2, UMat& dst)
 {
-    CV_INSTRUMENT_REGION()
-
     OutputArray _dst(dst);
     binary_op(src1, src2, _dst, noArray(), getMaxTab(), false, OCL_OP_MAX );
 }
 
 void cv::min(const UMat& src1, const UMat& src2, UMat& dst)
 {
-    CV_INSTRUMENT_REGION()
-
     OutputArray _dst(dst);
     binary_op(src1, src2, _dst, noArray(), getMinTab(), false, OCL_OP_MIN );
 }
@@ -663,7 +643,7 @@ static void arithm_op(InputArray _src1, InputArray _src2, OutputArray _dst,
         if (!muldiv)
         {
             Mat sc = psrc2->getMat();
-            depth2 = actualScalarDepth(sc.ptr<double>(), sz2 == Size(1, 1) ? cn2 : cn);
+            depth2 = actualScalarDepth(sc.ptr<double>(), cn);
             if( depth2 == CV_64F && (depth1 < CV_32S || depth1 == CV_32F) )
                 depth2 = CV_32F;
         }
@@ -921,16 +901,12 @@ static BinaryFuncC* getAbsDiffTab()
 void cv::add( InputArray src1, InputArray src2, OutputArray dst,
           InputArray mask, int dtype )
 {
-    CV_INSTRUMENT_REGION()
-
     arithm_op(src1, src2, dst, mask, dtype, getAddTab(), false, 0, OCL_OP_ADD );
 }
 
 void cv::subtract( InputArray _src1, InputArray _src2, OutputArray _dst,
                InputArray mask, int dtype )
 {
-    CV_INSTRUMENT_REGION()
-
 #ifdef HAVE_TEGRA_OPTIMIZATION
     if (tegra::useTegra())
     {
@@ -989,8 +965,6 @@ void cv::subtract( InputArray _src1, InputArray _src2, OutputArray _dst,
 
 void cv::absdiff( InputArray src1, InputArray src2, OutputArray dst )
 {
-    CV_INSTRUMENT_REGION()
-
     arithm_op(src1, src2, dst, noArray(), -1, getAbsDiffTab(), false, 0, OCL_OP_ABSDIFF);
 }
 
@@ -1042,8 +1016,6 @@ static BinaryFuncC* getRecipTab()
 void cv::multiply(InputArray src1, InputArray src2,
                   OutputArray dst, double scale, int dtype)
 {
-    CV_INSTRUMENT_REGION()
-
     arithm_op(src1, src2, dst, noArray(), dtype, getMulTab(),
               true, &scale, std::abs(scale - 1.0) < DBL_EPSILON ? OCL_OP_MUL : OCL_OP_MUL_SCALE);
 }
@@ -1051,16 +1023,12 @@ void cv::multiply(InputArray src1, InputArray src2,
 void cv::divide(InputArray src1, InputArray src2,
                 OutputArray dst, double scale, int dtype)
 {
-    CV_INSTRUMENT_REGION()
-
     arithm_op(src1, src2, dst, noArray(), dtype, getDivTab(), true, &scale, OCL_OP_DIV_SCALE);
 }
 
 void cv::divide(double scale, InputArray src2,
                 OutputArray dst, int dtype)
 {
-    CV_INSTRUMENT_REGION()
-
     arithm_op(src2, src2, dst, noArray(), dtype, getRecipTab(), true, &scale, OCL_OP_RECIP_SCALE);
 }
 
@@ -1088,8 +1056,6 @@ static BinaryFuncC* getAddWeightedTab()
 void cv::addWeighted( InputArray src1, double alpha, InputArray src2,
                       double beta, double gamma, OutputArray dst, int dtype )
 {
-    CV_INSTRUMENT_REGION()
-
     double scalars[] = {alpha, beta, gamma};
     arithm_op(src1, src2, dst, noArray(), dtype, getAddWeightedTab(), true, scalars, OCL_OP_ADDW);
 }
@@ -1228,8 +1194,6 @@ static bool ocl_compare(InputArray _src1, InputArray _src2, OutputArray _dst, in
 
 void cv::compare(InputArray _src1, InputArray _src2, OutputArray _dst, int op)
 {
-    CV_INSTRUMENT_REGION()
-
     CV_Assert( op == CMP_LT || op == CMP_LE || op == CMP_EQ ||
                op == CMP_NE || op == CMP_GE || op == CMP_GT );
 
@@ -1925,8 +1889,6 @@ static bool ocl_inRange( InputArray _src, InputArray _lowerb,
 void cv::inRange(InputArray _src, InputArray _lowerb,
                  InputArray _upperb, OutputArray _dst)
 {
-    CV_INSTRUMENT_REGION()
-
     CV_OCL_RUN(_src.dims() <= 2 && _lowerb.dims() <= 2 &&
                _upperb.dims() <= 2 && OCL_PERFORMANCE_CHECK(_dst.isUMat()),
                ocl_inRange(_src, _lowerb, _upperb, _dst))
@@ -2312,7 +2274,7 @@ static inline void fixSteps(int width, int height, size_t elemSize, size_t& step
     CV_IPP_CHECK() \
     { \
         fixSteps(width, height, sizeof(dst[0]), step1, step2, step); \
-        if (0 <= CV_INSTRUMENT_FUN_IPP(fun, src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(width, height), 0)) \
+        if (0 <= fun(src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(width, height), 0)) \
         { \
             CV_IMPL_ADD(CV_IMPL_IPP); \
             return; \
@@ -2324,7 +2286,7 @@ static inline void fixSteps(int width, int height, size_t elemSize, size_t& step
     CV_IPP_CHECK() \
     { \
         fixSteps(width, height, sizeof(dst[0]), step1, step2, step); \
-        if (0 <= CV_INSTRUMENT_FUN_IPP(fun, src2, (int)step2, src1, (int)step1, dst, (int)step, ippiSize(width, height), 0)) \
+        if (0 <= fun(src2, (int)step2, src1, (int)step1, dst, (int)step, ippiSize(width, height), 0)) \
         { \
             CV_IMPL_ADD(CV_IMPL_IPP); \
             return; \
@@ -2336,7 +2298,7 @@ static inline void fixSteps(int width, int height, size_t elemSize, size_t& step
     CV_IPP_CHECK() \
     { \
         fixSteps(width, height, sizeof(dst[0]), step1, step2, step); \
-        if (0 <= CV_INSTRUMENT_FUN_IPP(fun, src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(width, height))) \
+        if (0 <= fun(src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(width, height))) \
         { \
             CV_IMPL_ADD(CV_IMPL_IPP); \
             return; \
@@ -2348,7 +2310,7 @@ static inline void fixSteps(int width, int height, size_t elemSize, size_t& step
     CV_IPP_CHECK() \
     { \
         fixSteps(width, height, sizeof(dst[0]), step1, step2, step); \
-        if (0 <= CV_INSTRUMENT_FUN_IPP(fun, src2, (int)step2, src1, (int)step1, dst, (int)step, ippiSize(width, height))) \
+        if (0 <= fun(src2, (int)step2, src1, (int)step1, dst, (int)step, ippiSize(width, height))) \
         { \
             CV_IMPL_ADD(CV_IMPL_IPP); \
             return; \
@@ -2505,7 +2467,7 @@ void sub64f( const double* src1, size_t step1,
         int i = 0; \
         for(; i < height; i++) \
         { \
-            if (0 > CV_INSTRUMENT_FUN_IPP(fun, s1, s2, d, width)) \
+            if (0 > fun(s1, s2, d, width)) \
                 break; \
             s1 = (type*)((uchar*)s1 + step1); \
             s2 = (type*)((uchar*)s2 + step2); \
@@ -2722,7 +2684,7 @@ void absdiff64f( const double* src1, size_t step1,
     CV_IPP_CHECK() \
     { \
         fixSteps(width, height, sizeof(dst[0]), step1, step2, step); (void)src2; \
-        if (0 <= CV_INSTRUMENT_FUN_IPP(fun, src1, (int)step1, dst, (int)step, ippiSize(width, height))) \
+        if (0 <= fun(src1, (int)step1, dst, (int)step, ippiSize(width, height))) \
         { \
             CV_IMPL_ADD(CV_IMPL_IPP); \
             return; \
@@ -2788,7 +2750,7 @@ inline static IppCmpOp convert_cmp(int _cmpop)
         if( op  >= 0 ) \
         { \
             fixSteps(width, height, sizeof(dst[0]), step1, step2, step); \
-            if (0 <= CV_INSTRUMENT_FUN_IPP(fun, src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(width, height), op)) \
+            if (0 <= fun(src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(width, height), op)) \
             { \
                 CV_IMPL_ADD(CV_IMPL_IPP); \
                 return; \
@@ -3061,7 +3023,7 @@ void cmp64f(const double* src1, size_t step1, const double* src2, size_t step2,
     { \
         if (std::fabs(fscale - 1) <= FLT_EPSILON) \
         { \
-            if (CV_INSTRUMENT_FUN_IPP(fun, src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(width, height), 0) >= 0) \
+            if (fun(src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(width, height), 0) >= 0) \
             { \
                 CV_IMPL_ADD(CV_IMPL_IPP); \
                 return; \
@@ -3075,7 +3037,7 @@ void cmp64f(const double* src1, size_t step1, const double* src2, size_t step2,
     { \
         if (std::fabs(fscale - 1) <= FLT_EPSILON) \
         { \
-            if (CV_INSTRUMENT_FUN_IPP(fun, src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(width, height)) >= 0) \
+            if (fun(src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(width, height)) >= 0) \
             { \
                 CV_IMPL_ADD(CV_IMPL_IPP); \
                 return; \

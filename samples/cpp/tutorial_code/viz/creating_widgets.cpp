@@ -4,14 +4,6 @@
  * @author Ozan Cagri Tonkal
  */
 
-#ifndef USE_VTK
-#include <iostream>
-int main()
-{
-    std::cout << "This sample requires direct compilation with VTK. Stop" << std::endl;
-    return 0;
-}
-#else
 #include <opencv2/viz.hpp>
 #include <opencv2/viz/widget_accessor.hpp>
 #include <iostream>
@@ -119,4 +111,3 @@ int main()
 
     return 0;
 }
-#endif

@@ -41,13 +41,31 @@
 
 @interface CvAbstractCamera : NSObject
 {
+    AVCaptureSession* captureSession;
+    AVCaptureConnection* videoCaptureConnection;
+    AVCaptureVideoPreviewLayer *captureVideoPreviewLayer;
+
     UIDeviceOrientation currentDeviceOrientation;
 
     BOOL cameraAvailable;
+    BOOL captureSessionLoaded;
+    BOOL running;
+    BOOL useAVCaptureVideoPreviewLayer;
+
+    AVCaptureDevicePosition defaultAVCaptureDevicePosition;
+    AVCaptureVideoOrientation defaultAVCaptureVideoOrientation;
+    NSString *const defaultAVCaptureSessionPreset;
+
+    int defaultFPS;
+
+    UIView* parentView;
+
+    int imageWidth;
+    int imageHeight;
 }
 
-@property (nonatomic, strong) AVCaptureSession* captureSession;
-@property (nonatomic, strong) AVCaptureConnection* videoCaptureConnection;
+@property (nonatomic, retain) AVCaptureSession* captureSession;
+@property (nonatomic, retain) AVCaptureConnection* videoCaptureConnection;
 
 @property (nonatomic, readonly) BOOL running;
 @property (nonatomic, readonly) BOOL captureSessionLoaded;
@@ -62,7 +80,7 @@
 @property (nonatomic, assign) int imageWidth;
 @property (nonatomic, assign) int imageHeight;
 
-@property (nonatomic, strong) UIView* parentView;
+@property (nonatomic, retain) UIView* parentView;
 
 - (void)start;
 - (void)stop;
@@ -103,18 +121,26 @@
     dispatch_queue_t videoDataOutputQueue;
     CALayer *customPreviewLayer;
 
+    BOOL grayscaleMode;
+
+    BOOL recordVideo;
+    BOOL rotateVideo;
+    AVAssetWriterInput* recordAssetWriterInput;
+    AVAssetWriterInputPixelBufferAdaptor* recordPixelBufferAdaptor;
+    AVAssetWriter* recordAssetWriter;
+
     CMTime lastSampleTime;
 
 }
 
-@property (nonatomic, weak) id<CvVideoCameraDelegate> delegate;
+@property (nonatomic, assign) id<CvVideoCameraDelegate> delegate;
 @property (nonatomic, assign) BOOL grayscaleMode;
 
 @property (nonatomic, assign) BOOL recordVideo;
 @property (nonatomic, assign) BOOL rotateVideo;
-@property (nonatomic, strong) AVAssetWriterInput* recordAssetWriterInput;
-@property (nonatomic, strong) AVAssetWriterInputPixelBufferAdaptor* recordPixelBufferAdaptor;
-@property (nonatomic, strong) AVAssetWriter* recordAssetWriter;
+@property (nonatomic, retain) AVAssetWriterInput* recordAssetWriterInput;
+@property (nonatomic, retain) AVAssetWriterInputPixelBufferAdaptor* recordPixelBufferAdaptor;
+@property (nonatomic, retain) AVAssetWriter* recordAssetWriter;
 
 - (void)adjustLayoutToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation;
 - (void)layoutPreviewLayer;
@@ -141,7 +167,7 @@
     AVCaptureStillImageOutput *stillImageOutput;
 }
 
-@property (nonatomic, weak) id<CvPhotoCameraDelegate> delegate;
+@property (nonatomic, assign) id<CvPhotoCameraDelegate> delegate;
 
 - (void)takePicture;
 

@@ -115,13 +115,12 @@ cvCreateMatHeader( int rows, int cols, int type )
 {
     type = CV_MAT_TYPE(type);
 
-    if( rows < 0 || cols < 0 )
+    if( rows < 0 || cols <= 0 )
         CV_Error( CV_StsBadSize, "Non-positive width or height" );
 
-    int min_step = CV_ELEM_SIZE(type);
+    int min_step = CV_ELEM_SIZE(type)*cols;
     if( min_step <= 0 )
         CV_Error( CV_StsUnsupportedFormat, "Invalid matrix type" );
-    min_step *= cols;
 
     CvMat* arr = (CvMat*)cvAlloc( sizeof(*arr));
 
@@ -149,7 +148,7 @@ cvInitMatHeader( CvMat* arr, int rows, int cols,
     if( (unsigned)CV_MAT_DEPTH(type) > CV_DEPTH_MAX )
         CV_Error( CV_BadNumChannels, "" );
 
-    if( rows < 0 || cols < 0 )
+    if( rows < 0 || cols <= 0 )
         CV_Error( CV_StsBadSize, "Non-positive cols or rows" );
 
     type = CV_MAT_TYPE( type );

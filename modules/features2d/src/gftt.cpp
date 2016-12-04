@@ -75,8 +75,6 @@ public:
 
     void detect( InputArray _image, std::vector<KeyPoint>& keypoints, InputArray _mask )
     {
-        CV_INSTRUMENT_REGION()
-
         std::vector<Point2f> corners;
 
         if (_image.isUMat())

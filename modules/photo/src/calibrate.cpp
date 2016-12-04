@@ -63,8 +63,6 @@ public:
 
     void process(InputArrayOfArrays src, OutputArray dst, InputArray _times)
     {
-        CV_INSTRUMENT_REGION()
-
         std::vector<Mat> images;
         src.getMatVector(images);
         Mat times = _times.getMat();
@@ -186,8 +184,6 @@ public:
 
     void process(InputArrayOfArrays src, OutputArray dst, InputArray _times)
     {
-        CV_INSTRUMENT_REGION()
-
         std::vector<Mat> images;
         src.getMatVector(images);
         Mat times = _times.getMat();

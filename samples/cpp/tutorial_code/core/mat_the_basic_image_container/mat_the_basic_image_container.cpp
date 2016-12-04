@@ -1,6 +1,6 @@
 /*  For description look into the help() function. */
 
-#include "opencv2/core.hpp"
+#include "opencv2/core/core.hpp"
 #include <iostream>
 
 using namespace std;
@@ -15,7 +15,7 @@ static void help()
     << "That is, cv::Mat M(...); M.create and cout << M. "                            << endl
     << "Shows how output can be formated to OpenCV, python, numpy, csv and C styles." << endl
     << "Usage:"                                                                       << endl
-    << "./mat_the_basic_image_container"                                              << endl
+    << "./cvout_sample"                                                               << endl
     << "--------------------------------------------------------------------------"   << endl
     << endl;
 }
