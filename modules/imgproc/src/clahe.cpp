@@ -351,8 +351,6 @@ namespace
 
     void CLAHE_Impl::apply(cv::InputArray _src, cv::OutputArray _dst)
     {
-        CV_INSTRUMENT_REGION()
-
         CV_Assert( _src.type() == CV_8UC1 || _src.type() == CV_16UC1 );
 
 #ifdef HAVE_OPENCL

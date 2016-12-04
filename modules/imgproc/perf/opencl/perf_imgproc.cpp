@@ -299,29 +299,32 @@ OCL_PERF_TEST_P(CLAHEFixture, CLAHE, OCL_TEST_SIZES)
 
 ///////////// Canny ////////////////////////
 
-typedef tuple<Size, int, bool> CannyParams;
+typedef tuple<int, bool> CannyParams;
 typedef TestBaseWithParam<CannyParams> CannyFixture;
 
-OCL_PERF_TEST_P(CannyFixture, Canny, ::testing::Combine(OCL_TEST_SIZES, OCL_PERF_ENUM(3, 5), Bool()))
+OCL_PERF_TEST_P(CannyFixture, Canny, ::testing::Combine(OCL_PERF_ENUM(3, 5), Bool()))
 {
-    const CannyParams& params = GetParam();
-    cv::Size imgSize = get<0>(params);
-    int apertureSize = get<1>(params);
-    bool L2Grad = get<2>(params);
+    const CannyParams params = GetParam();
+    int apertureSize = get<0>(params);
+    bool L2Grad = get<1>(params);
 
     Mat _img = imread(getDataPath("gpu/stereobm/aloe-L.png"), cv::IMREAD_GRAYSCALE);
     ASSERT_TRUE(!_img.empty()) << "can't open aloe-L.png";
 
     UMat img;
-    cv::resize(_img, img, imgSize);
+    _img.copyTo(img);
     UMat edges(img.size(), CV_8UC1);
 
-    declare.in(img).out(edges);
+    declare.in(img, WARMUP_RNG).out(edges);
 
     OCL_TEST_CYCLE() cv::Canny(img, edges, 50.0, 100.0, apertureSize, L2Grad);
 
-    SANITY_CHECK_NOTHING();
+    if (apertureSize == 3)
+        SANITY_CHECK(edges);
+    else
+        SANITY_CHECK_NOTHING();
 }
+
 
 } } // namespace cvtest::ocl
 

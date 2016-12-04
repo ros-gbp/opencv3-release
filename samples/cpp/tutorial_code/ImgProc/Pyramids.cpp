@@ -4,9 +4,12 @@
  * @author OpenCV team
  */
 
-#include "opencv2/imgproc.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 using namespace cv;
 
@@ -28,50 +31,39 @@ int main( void )
   printf( " * [d] -> Zoom out \n" );
   printf( " * [ESC] -> Close program \n \n" );
 
-  //![load]
-  src = imread( "../data/chicky_512.png" ); // Loads the test image
+  /// Test image - Make sure it s divisible by 2^{n}
+  src = imread( "../data/chicky_512.png" );
   if( src.empty() )
     { printf(" No data! -- Exiting the program \n");
       return -1; }
-  //![load]
 
   tmp = src;
   dst = tmp;
 
-  //![create_window]
+  /// Create window
+  namedWindow( window_name, WINDOW_AUTOSIZE );
   imshow( window_name, dst );
-  //![create_window]
 
-  //![infinite_loop]
+  /// Loop
   for(;;)
   {
     int c;
-    c = waitKey(0);
+    c = waitKey(10);
 
     if( (char)c == 27 )
       { break; }
     if( (char)c == 'u' )
-      {
-        //![pyrup]
-        pyrUp( tmp, dst, Size( tmp.cols*2, tmp.rows*2 ) );
-        //![pyrup]
+      { pyrUp( tmp, dst, Size( tmp.cols*2, tmp.rows*2 ) );
         printf( "** Zoom In: Image x 2 \n" );
       }
     else if( (char)c == 'd' )
-      {
-        //![pyrdown]
-        pyrDown( tmp, dst, Size( tmp.cols/2, tmp.rows/2 ) );
-        //![pyrdown]
+      { pyrDown( tmp, dst, Size( tmp.cols/2, tmp.rows/2 ) );
         printf( "** Zoom Out: Image / 2 \n" );
       }
 
     imshow( window_name, dst );
-
-    //![update_tmp]
     tmp = dst;
-    //![update_tmp]
    }
-   //![infinite_loop]
 
    return 0;
 }
