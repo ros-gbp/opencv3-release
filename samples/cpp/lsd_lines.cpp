@@ -1,8 +1,11 @@
 #include <iostream>
+#include <string>
 
-#include "opencv2/imgproc.hpp"
+#include "opencv2/core/core.hpp"
+#include "opencv2/core/utility.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
+#include "opencv2/highgui/highgui.hpp"
 
 using namespace std;
 using namespace cv;
@@ -19,9 +22,6 @@ int main(int argc, char** argv)
     in = parser.get<string>("@input");
 
     Mat image = imread(in, IMREAD_GRAYSCALE);
-
-    if( image.empty() )
-    { return -1; }
 
 #if 0
     Canny(image, image, 50, 200, 3); // Apply canny edge

@@ -5,16 +5,16 @@
  */
 
 #include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
-#include "opencv2/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 #include <iostream>
+#include <stdio.h>
 
 using namespace std;
 using namespace cv;
 
 /// Global Variables
-bool use_mask;
-Mat img; Mat templ; Mat mask; Mat result;
+Mat img; Mat templ; Mat result;
 const char* image_window = "Source Image";
 const char* result_window = "Result window";
 
@@ -27,29 +27,11 @@ void MatchingMethod( int, void* );
 /**
  * @function main
  */
-int main( int argc, char** argv )
+int main( int, char** argv )
 {
-  if (argc < 3)
-  {
-    cout << "Not enough parameters" << endl;
-    cout << "Usage:\n./MatchTemplate_Demo <image_name> <template_name> [<mask_name>]" << endl;
-    return -1;
-  }
-
   /// Load image and template
-  img = imread( argv[1], IMREAD_COLOR );
-  templ = imread( argv[2], IMREAD_COLOR );
-
-  if(argc > 3) {
-    use_mask = true;
-    mask = imread( argv[3], IMREAD_COLOR );
-  }
-
-  if(img.empty() || templ.empty() || (use_mask && mask.empty()))
-  {
-    cout << "Can't read one of the images" << endl;
-    return -1;
-  }
+  img = imread( argv[1], 1 );
+  templ = imread( argv[2], 1 );
 
   /// Create windows
   namedWindow( image_window, WINDOW_AUTOSIZE );
@@ -82,12 +64,7 @@ void MatchingMethod( int, void* )
   result.create( result_rows, result_cols, CV_32FC1 );
 
   /// Do the Matching and Normalize
-  bool method_accepts_mask = (CV_TM_SQDIFF == match_method || match_method == CV_TM_CCORR_NORMED);
-  if (use_mask && method_accepts_mask)
-    { matchTemplate( img, templ, result, match_method, mask); }
-  else
-    { matchTemplate( img, templ, result, match_method); }
-
+  matchTemplate( img, templ, result, match_method );
   normalize( result, result, 0, 1, NORM_MINMAX, -1, Mat() );
 
   /// Localizing the best match with minMaxLoc

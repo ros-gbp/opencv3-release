@@ -567,8 +567,6 @@ void DescriptorMatcher::train()
 void DescriptorMatcher::match( InputArray queryDescriptors, InputArray trainDescriptors,
                               std::vector<DMatch>& matches, InputArray mask ) const
 {
-    CV_INSTRUMENT_REGION()
-
     Ptr<DescriptorMatcher> tempMatcher = clone(true);
     tempMatcher->add(trainDescriptors);
     tempMatcher->match( queryDescriptors, matches, std::vector<Mat>(1, mask.getMat()) );
@@ -578,8 +576,6 @@ void DescriptorMatcher::knnMatch( InputArray queryDescriptors, InputArray trainD
                                   std::vector<std::vector<DMatch> >& matches, int knn,
                                   InputArray mask, bool compactResult ) const
 {
-    CV_INSTRUMENT_REGION()
-
     Ptr<DescriptorMatcher> tempMatcher = clone(true);
     tempMatcher->add(trainDescriptors);
     tempMatcher->knnMatch( queryDescriptors, matches, knn, std::vector<Mat>(1, mask.getMat()), compactResult );
@@ -589,8 +585,6 @@ void DescriptorMatcher::radiusMatch( InputArray queryDescriptors, InputArray tra
                                      std::vector<std::vector<DMatch> >& matches, float maxDistance, InputArray mask,
                                      bool compactResult ) const
 {
-    CV_INSTRUMENT_REGION()
-
     Ptr<DescriptorMatcher> tempMatcher = clone(true);
     tempMatcher->add(trainDescriptors);
     tempMatcher->radiusMatch( queryDescriptors, matches, maxDistance, std::vector<Mat>(1, mask.getMat()), compactResult );
@@ -598,8 +592,6 @@ void DescriptorMatcher::radiusMatch( InputArray queryDescriptors, InputArray tra
 
 void DescriptorMatcher::match( InputArray queryDescriptors, std::vector<DMatch>& matches, InputArrayOfArrays masks )
 {
-    CV_INSTRUMENT_REGION()
-
     std::vector<std::vector<DMatch> > knnMatches;
     knnMatch( queryDescriptors, knnMatches, 1, masks, true /*compactResult*/ );
     convertMatches( knnMatches, matches );
@@ -621,7 +613,8 @@ void DescriptorMatcher::checkMasks( InputArrayOfArrays _masks, int queryDescript
             {
                 int rows = trainDescCollection[i].empty() ? utrainDescCollection[i].rows : trainDescCollection[i].rows;
                     CV_Assert( masks[i].rows == queryDescriptorsCount &&
-                        masks[i].cols == rows && masks[i].type() == CV_8UC1);
+                        (masks[i].cols == rows || masks[i].cols == rows) &&
+                        masks[i].type() == CV_8UC1 );
             }
         }
     }
@@ -630,8 +623,6 @@ void DescriptorMatcher::checkMasks( InputArrayOfArrays _masks, int queryDescript
 void DescriptorMatcher::knnMatch( InputArray queryDescriptors, std::vector<std::vector<DMatch> >& matches, int knn,
                                   InputArrayOfArrays masks, bool compactResult )
 {
-    CV_INSTRUMENT_REGION()
-
     if( empty() || queryDescriptors.empty() )
         return;
 
@@ -646,8 +637,6 @@ void DescriptorMatcher::knnMatch( InputArray queryDescriptors, std::vector<std::
 void DescriptorMatcher::radiusMatch( InputArray queryDescriptors, std::vector<std::vector<DMatch> >& matches, float maxDistance,
                                      InputArrayOfArrays masks, bool compactResult )
 {
-    CV_INSTRUMENT_REGION()
-
     matches.clear();
     if( empty() || queryDescriptors.empty() )
         return;
@@ -1091,8 +1080,6 @@ void FlannBasedMatcher::clear()
 
 void FlannBasedMatcher::train()
 {
-    CV_INSTRUMENT_REGION()
-
     if( !flannIndex || mergedDescriptors.size() < addedDescCount )
     {
         // FIXIT: Workaround for 'utrainDescCollection' issue (PR #2142)
@@ -1345,8 +1332,6 @@ void FlannBasedMatcher::convertToDMatches( const DescriptorCollection& collectio
 void FlannBasedMatcher::knnMatchImpl( InputArray _queryDescriptors, std::vector<std::vector<DMatch> >& matches, int knn,
                                      InputArrayOfArrays /*masks*/, bool /*compactResult*/ )
 {
-    CV_INSTRUMENT_REGION()
-
     Mat queryDescriptors = _queryDescriptors.getMat();
     Mat indices( queryDescriptors.rows, knn, CV_32SC1 );
     Mat dists( queryDescriptors.rows, knn, CV_32FC1);
@@ -1358,8 +1343,6 @@ void FlannBasedMatcher::knnMatchImpl( InputArray _queryDescriptors, std::vector<
 void FlannBasedMatcher::radiusMatchImpl( InputArray _queryDescriptors, std::vector<std::vector<DMatch> >& matches, float maxDistance,
                                          InputArrayOfArrays /*masks*/, bool /*compactResult*/ )
 {
-    CV_INSTRUMENT_REGION()
-
     Mat queryDescriptors = _queryDescriptors.getMat();
     const int count = mergedDescriptors.size(); // TODO do count as param?
     Mat indices( queryDescriptors.rows, count, CV_32SC1, Scalar::all(-1) );
@@ -1374,4 +1357,5 @@ void FlannBasedMatcher::radiusMatchImpl( InputArray _queryDescriptors, std::vect
 
     convertToDMatches( mergedDescriptors, indices, dists, matches );
 }
+
 }

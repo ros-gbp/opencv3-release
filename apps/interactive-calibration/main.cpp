@@ -1,13 +1,8 @@
-// This file is part of OpenCV project.
-// It is subject to the license terms in the LICENSE file found in the top-level directory
-// of this distribution and at http://opencv.org/license.html.
-
 #include <opencv2/core.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/aruco/charuco.hpp>
 #include <opencv2/cvconfig.h>
 #include <opencv2/highgui.hpp>
-
 #include <string>
 #include <vector>
 #include <stdexcept>
@@ -17,6 +12,7 @@
 #include "calibCommon.hpp"
 #include "calibPipeline.hpp"
 #include "frameProcessor.hpp"
+#include "cvCalibrationFork.hpp"
 #include "calibController.hpp"
 #include "parametersController.hpp"
 #include "rotationConverters.hpp"
@@ -27,7 +23,7 @@ const std::string keys  =
         "{v        |         | Input from video file }"
         "{ci       | 0       | Default camera id }"
         "{flip     | false   | Vertical flip of input frames }"
-        "{t        | circles | Template for calibration (circles, chessboard, dualCircles, charuco) }"
+        "{t        | circles | Template for calibration (circles, chessboard, dualCircles, chAruco) }"
         "{sz       | 16.3    | Distance between two nearest centers of circles or squares on calibration board}"
         "{dst      | 295     | Distance between white and black parts of daulCircles template}"
         "{w        |         | Width of template (in corners or circles)}"
@@ -110,7 +106,7 @@ int main(int argc, char** argv)
     if(!parser.has("v")) globalData->imageSize = capParams.cameraResolution;
 
     int calibrationFlags = 0;
-    if(intParams.fastSolving) calibrationFlags |= cv::CALIB_USE_QR;
+    if(intParams.fastSolving) calibrationFlags |= CALIB_USE_QR;
     cv::Ptr<calibController> controller(new calibController(globalData, calibrationFlags,
                                                          parser.get<bool>("ft"), capParams.minFramesNum));
     cv::Ptr<calibDataController> dataController(new calibDataController(globalData, capParams.maxFramesNum,
@@ -135,16 +131,11 @@ int main(int argc, char** argv)
     cv::namedWindow(mainWindowName);
     cv::moveWindow(mainWindowName, 10, 10);
 #ifdef HAVE_QT
-    cv::createButton("Delete last frame", deleteButton, &dataController,
-                     cv::QT_PUSH_BUTTON | cv::QT_NEW_BUTTONBAR);
-    cv::createButton("Delete all frames", deleteAllButton, &dataController,
-                     cv::QT_PUSH_BUTTON | cv::QT_NEW_BUTTONBAR);
-    cv::createButton("Undistort", undistortButton, &showProcessor,
-                     cv::QT_CHECKBOX | cv::QT_NEW_BUTTONBAR, false);
-    cv::createButton("Save current parameters", saveCurrentParamsButton, &dataController,
-                     cv::QT_PUSH_BUTTON | cv::QT_NEW_BUTTONBAR);
-    cv::createButton("Switch visualisation mode", switchVisualizationModeButton, &showProcessor,
-                     cv::QT_PUSH_BUTTON | cv::QT_NEW_BUTTONBAR);
+    cv::createButton("Delete last frame", deleteButton, &dataController, cv::QT_PUSH_BUTTON);
+    cv::createButton("Delete all frames", deleteAllButton, &dataController, cv::QT_PUSH_BUTTON);
+    cv::createButton("Undistort", undistortButton, &showProcessor, cv::QT_CHECKBOX, false);
+    cv::createButton("Save current parameters", saveCurrentParamsButton, &dataController, cv::QT_PUSH_BUTTON);
+    cv::createButton("Switch visualisation mode", switchVisualizationModeButton, &showProcessor, cv::QT_PUSH_BUTTON);
 #endif //HAVE_QT
     try {
         bool pipelineFinished = false;
@@ -165,10 +156,10 @@ int main(int argc, char** argv)
 
                 if(capParams.board != chAruco) {
                     globalData->totalAvgErr =
-                            cv::calibrateCamera(globalData->objectPoints, globalData->imagePoints,
+                            cvfork::calibrateCamera(globalData->objectPoints, globalData->imagePoints,
                                                     globalData->imageSize, globalData->cameraMatrix,
                                                     globalData->distCoeffs, cv::noArray(), cv::noArray(),
-                                                    globalData->stdDeviations, cv::noArray(), globalData->perViewErrors,
+                                                    globalData->stdDeviations, globalData->perViewErrors,
                                                     calibrationFlags, solverTermCrit);
                 }
                 else {
@@ -178,10 +169,10 @@ int main(int argc, char** argv)
                                 cv::aruco::CharucoBoard::create(capParams.boardSize.width, capParams.boardSize.height,
                                                                 capParams.charucoSquareLenght, capParams.charucoMarkerSize, dictionary);
                     globalData->totalAvgErr =
-                            cv::aruco::calibrateCameraCharuco(globalData->allCharucoCorners, globalData->allCharucoIds,
+                            cvfork::calibrateCameraCharuco(globalData->allCharucoCorners, globalData->allCharucoIds,
                                                            charucoboard, globalData->imageSize,
                                                            globalData->cameraMatrix, globalData->distCoeffs,
-                                                           cv::noArray(), cv::noArray(), globalData->stdDeviations, cv::noArray(),
+                                                           cv::noArray(), cv::noArray(), globalData->stdDeviations,
                                                            globalData->perViewErrors, calibrationFlags, solverTermCrit);
                 }
                 dataController->updateUndistortMap();

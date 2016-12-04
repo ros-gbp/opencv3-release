@@ -47,7 +47,14 @@ Software for visualising cascade classifier models trained by OpenCV and to get 
 understanding of the used features.
 
 USAGE:
-./opencv_visualisation --model=<model.xml> --image=<ref.png> --data=<video output folder>
+./visualise_models -model <model.xml> -image <ref.png> -data <output folder>
+
+LIMITS
+- Use an absolute path for the output folder to ensure the tool works
+- Only handles cascade classifier models
+- Handles stumps only for the moment
+- Needs a valid training/test sample window with the original model dimensions, passed as `ref.png`
+- Can handle HAAR and LBP features
 
 Created by: Puttemans Steven - April 2016
 *****************************************************************************************************/
@@ -72,34 +79,22 @@ struct rect_data{
     float weight;
 };
 
-static void printLimits(){
-    cerr << "Limits of the current interface:" << endl;
-    cerr << " - Only handles cascade classifier models, trained with the opencv_traincascade tool, containing stumps as decision trees [default settings]." << endl;
-    cerr << " - The image provided needs to be a sample window with the original model dimensions, passed to the --image parameter." << endl;
-    cerr << " - ONLY handles HAAR and LBP features." << endl;
-}
-
 int main( int argc, const char** argv )
 {
-    CommandLineParser parser(argc, argv,
-        "{ help h usage ? |      | show this message }"
-        "{ image i        |      | (required) path to reference image }"
-        "{ model m        |      | (required) path to cascade xml file }"
-        "{ data d         |      | (optional) path to video output folder }"
-    );
     // Read in the input arguments
-    if (parser.has("help")){
-        parser.printMessage();
-        printLimits();
-        return 0;
-    }
-    string model(parser.get<string>("model"));
-    string output_folder(parser.get<string>("data"));
-    string image_ref = (parser.get<string>("image"));
-    if (model.empty() || image_ref.empty()){
-        parser.printMessage();
-        printLimits();
-        return -1;
+    string model = "";
+    string output_folder = "";
+    string image_ref = "";
+    for(int i = 1; i < argc; ++i )
+    {
+        if( !strcmp( argv[i], "-model" ) )
+        {
+            model = argv[++i];
+        }else if( !strcmp( argv[i], "-image" ) ){
+            image_ref = argv[++i];
+        }else if( !strcmp( argv[i], "-data" ) ){
+            output_folder = argv[++i];
+        }
     }
 
     // Value for timing
@@ -111,11 +106,8 @@ int main( int argc, const char** argv )
 
     // Open the XML model
     FileStorage fs;
-    bool model_ok = fs.open(model, FileStorage::READ);
-    if (!model_ok){
-        cerr << "the cascade file '" << model << "' could not be loaded." << endl;
-        return  -1;
-    }
+    fs.open(model, FileStorage::READ);
+
     // Get a the required information
     // First decide which feature type we are using
     FileNode cascade = fs["cascade"];
@@ -137,10 +129,6 @@ int main( int argc, const char** argv )
     int resize_factor = 10;
     int resize_storage_factor = 10;
     Mat reference_image = imread(image_ref, IMREAD_GRAYSCALE );
-    if (reference_image.empty()){
-        cerr << "the reference image '" << image_ref << "'' could not be loaded." << endl;
-        return -1;
-    }
     Mat visualization;
     resize(reference_image, visualization, Size(reference_image.cols * resize_factor, reference_image.rows * resize_factor));
 
