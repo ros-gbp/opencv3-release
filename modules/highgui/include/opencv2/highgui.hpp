@@ -44,8 +44,12 @@
 #define __OPENCV_HIGHGUI_HPP__
 
 #include "opencv2/core.hpp"
+#ifdef HAVE_OPENCV_IMGCODECS
 #include "opencv2/imgcodecs.hpp"
+#endif
+#ifdef HAVE_OPENCV_VIDEOIO
 #include "opencv2/videoio.hpp"
+#endif
 
 /**
 @defgroup highgui High-level GUI
@@ -239,9 +243,10 @@ enum QtFontStyles {
 
 //! Qt "button" type
 enum QtButtonTypes {
-       QT_PUSH_BUTTON = 0, //!< Push button.
-       QT_CHECKBOX    = 1, //!< Checkbox button.
-       QT_RADIOBOX    = 2  //!< Radiobox button.
+       QT_PUSH_BUTTON   = 0,    //!< Push button.
+       QT_CHECKBOX      = 1,    //!< Checkbox button.
+       QT_RADIOBOX      = 2,    //!< Radiobox button.
+       QT_NEW_BUTTONBAR = 1024  //!< Button should create a new buttonbar
      };
 
 /** @brief Callback function for mouse events. see cv::setMouseCallback
@@ -425,7 +430,7 @@ CV_EXPORTS_W double getWindowProperty(const String& winname, int prop_id);
 
 @param winname Name of the window.
 @param onMouse Mouse callback. See OpenCV samples, such as
-<https://github.com/Itseez/opencv/tree/master/samples/cpp/ffilldemo.cpp>, on how to specify and
+<https://github.com/opencv/opencv/tree/master/samples/cpp/ffilldemo.cpp>, on how to specify and
 use the callback.
 @param userdata The optional parameter passed to the callback.
  */
@@ -677,7 +682,7 @@ after the specified delay the original content of the window is restored.
 function is called before the previous overlay text timed out, the timer is restarted and the text
 is updated. If this value is zero, the text never disappears.
  */
-CV_EXPORTS void displayOverlay(const String& winname, const String& text, int delayms = 0);
+CV_EXPORTS_W void displayOverlay(const String& winname, const String& text, int delayms = 0);
 
 /** @brief Displays a text on the window statusbar during the specified period of time.
 
@@ -691,7 +696,7 @@ created with the CV_GUI_EXPANDED flags).
 the previous text timed out, the timer is restarted and the text is updated. If this value is
 zero, the text never disappears.
  */
-CV_EXPORTS void displayStatusBar(const String& winname, const String& text, int delayms = 0);
+CV_EXPORTS_W void displayStatusBar(const String& winname, const String& text, int delayms = 0);
 
 /** @brief Saves parameters of the specified window.
 
@@ -719,7 +724,8 @@ CV_EXPORTS  void stopLoop();
 
 The function createButton attaches a button to the control panel. Each button is added to a
 buttonbar to the right of the last button. A new buttonbar is created if nothing was attached to the
-control panel before, or if the last element attached to the control panel was a trackbar.
+control panel before, or if the last element attached to the control panel was a trackbar or if the
+QT_NEW_BUTTONBAR flag is added to the type.
 
 See below various examples of the cv::createButton function call: :
 @code
@@ -728,6 +734,7 @@ See below various examples of the cv::createButton function call: :
     createButton("button3",callbackButton,&value);
     createButton("button5",callbackButton1,NULL,QT_RADIOBOX);
     createButton("button6",callbackButton2,NULL,QT_PUSH_BUTTON,1);
+    createButton("button6",callbackButton2,NULL,QT_PUSH_BUTTON|QT_NEW_BUTTONBAR);// create a push button in a new row
 @endcode
 
 @param  bar_name Name of the button.
