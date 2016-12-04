@@ -179,8 +179,6 @@ void EllipticKeyPoint::calcProjection( const Mat_<double>& H, EllipticKeyPoint& 
 
 void EllipticKeyPoint::convert( const std::vector<KeyPoint>& src, std::vector<EllipticKeyPoint>& dst )
 {
-    CV_INSTRUMENT_REGION()
-
     if( !src.empty() )
     {
         dst.resize(src.size());
@@ -196,8 +194,6 @@ void EllipticKeyPoint::convert( const std::vector<KeyPoint>& src, std::vector<El
 
 void EllipticKeyPoint::convert( const std::vector<EllipticKeyPoint>& src, std::vector<KeyPoint>& dst )
 {
-    CV_INSTRUMENT_REGION()
-
     if( !src.empty() )
     {
         dst.resize(src.size());
@@ -460,8 +456,6 @@ void cv::evaluateFeatureDetector( const Mat& img1, const Mat& img2, const Mat& H
                               float& repeatability, int& correspCount,
                               const Ptr<FeatureDetector>& _fdetector )
 {
-    CV_INSTRUMENT_REGION()
-
     Ptr<FeatureDetector> fdetector(_fdetector);
     std::vector<KeyPoint> *keypoints1, *keypoints2, buf1, buf2;
     keypoints1 = _keypoints1 != 0 ? _keypoints1 : &buf1;
@@ -498,8 +492,6 @@ void cv::computeRecallPrecisionCurve( const std::vector<std::vector<DMatch> >& m
                                       const std::vector<std::vector<uchar> >& correctMatches1to2Mask,
                                       std::vector<Point2f>& recallPrecisionCurve )
 {
-    CV_INSTRUMENT_REGION()
-
     CV_Assert( matches1to2.size() == correctMatches1to2Mask.size() );
 
     std::vector<DMatchForEvaluation> allMatches;
@@ -534,8 +526,6 @@ void cv::computeRecallPrecisionCurve( const std::vector<std::vector<DMatch> >& m
 
 float cv::getRecall( const std::vector<Point2f>& recallPrecisionCurve, float l_precision )
 {
-    CV_INSTRUMENT_REGION()
-
     int nearestPointIndex = getNearestPoint( recallPrecisionCurve, l_precision );
 
     float recall = -1.f;
@@ -548,8 +538,6 @@ float cv::getRecall( const std::vector<Point2f>& recallPrecisionCurve, float l_p
 
 int cv::getNearestPoint( const std::vector<Point2f>& recallPrecisionCurve, float l_precision )
 {
-    CV_INSTRUMENT_REGION()
-
     int nearestPointIndex = -1;
 
     if( l_precision >= 0 && l_precision <= 1 )

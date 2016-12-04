@@ -16,13 +16,13 @@ int main()
     {
         if (i < data.rows/2)
         {
-            responses(i, 0) = 1;
-            responses(i, 1) = 0;
+            data(i, 0) = 1;
+            data(i, 1) = 0;
         }
         else
         {
-            responses(i, 0) = 0;
-            responses(i, 1) = 1;
+            data(i, 0) = 0;
+            data(i, 1) = 1;
         }
     }
 
