@@ -219,8 +219,6 @@ double cv::kmeans( InputArray _data, int K,
                    TermCriteria criteria, int attempts,
                    int flags, OutputArray _centers )
 {
-    CV_INSTRUMENT_REGION()
-
     const int SPP_TRIALS = 3;
     Mat data0 = _data.getMat();
     bool isrow = data0.rows == 1;

@@ -344,8 +344,10 @@ public:
                 else
                     errf = err;
                 CV_Assert( errf.isContinuous() && errf.type() == CV_32F && (int)errf.total() == count );
-                std::nth_element(errf.ptr<int>(), errf.ptr<int>() + count/2, errf.ptr<int>() + count);
-                double median = errf.at<float>(count/2);
+                std::sort(errf.ptr<int>(), errf.ptr<int>() + count);
+
+                double median = count % 2 != 0 ?
+                errf.at<float>(count/2) : (errf.at<float>(count/2-1) + errf.at<float>(count/2))*0.5;
 
                 if( median < minMedian )
                 {
@@ -460,7 +462,7 @@ public:
             double b = F[4]*f.x + F[5]*f.y + F[ 6]*f.z + F[ 7] - t.y;
             double c = F[8]*f.x + F[9]*f.y + F[10]*f.z + F[11] - t.z;
 
-            errptr[i] = (float)(a*a + b*b + c*c);
+            errptr[i] = (float)std::sqrt(a*a + b*b + c*c);
         }
     }
 
@@ -505,8 +507,6 @@ int cv::estimateAffine3D(InputArray _from, InputArray _to,
                          OutputArray _out, OutputArray _inliers,
                          double param1, double param2)
 {
-    CV_INSTRUMENT_REGION()
-
     Mat from = _from.getMat(), to = _to.getMat();
     int count = from.checkVector(3);
 
