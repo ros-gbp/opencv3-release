@@ -5,9 +5,11 @@
  */
 
 #include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
-#include "opencv2/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 
 using namespace cv;
 using namespace std;
@@ -30,7 +32,7 @@ void goodFeaturesToTrack_Demo( int, void* );
 int main( int, char** argv )
 {
   /// Load source image and convert it to gray
-  src = imread( argv[1], IMREAD_COLOR );
+  src = imread( argv[1], 1 );
   cvtColor( src, src_gray, COLOR_BGR2GRAY );
 
   /// Create Window

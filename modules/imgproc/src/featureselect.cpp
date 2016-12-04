@@ -54,8 +54,7 @@ struct greaterThanPtr :
         public std::binary_function<const float *, const float *, bool>
 {
     bool operator () (const float * a, const float * b) const
-    // Ensure a fully deterministic result of the sort
-    { return (*a > *b) ? true : (*a < *b) ? false : (a > b); }
+    { return *a > *b; }
 };
 
 #ifdef HAVE_OPENCL
@@ -67,8 +66,7 @@ struct Corner
     short x;
 
     bool operator < (const Corner & c) const
-    // Ensure a fully deterministic result of the sort
-    {  return (val > c.val) ? true : (val < c.val) ? false : (y > c.y) ? true : (y < c.y) ? false : (x > c.x); }
+    {  return val > c.val; }
 };
 
 static bool ocl_goodFeaturesToTrack( InputArray _image, OutputArray _corners,
@@ -269,8 +267,6 @@ void cv::goodFeaturesToTrack( InputArray _image, OutputArray _corners,
                               InputArray _mask, int blockSize,
                               bool useHarrisDetector, double harrisK )
 {
-    CV_INSTRUMENT_REGION()
-
     CV_Assert( qualityLevel > 0 && minDistance >= 0 && maxCorners >= 0 );
     CV_Assert( _mask.empty() || (_mask.type() == CV_8UC1 && _mask.sameSize(_image)) );
 

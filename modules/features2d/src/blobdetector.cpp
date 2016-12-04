@@ -190,8 +190,6 @@ void SimpleBlobDetectorImpl::write( cv::FileStorage& fs ) const
 
 void SimpleBlobDetectorImpl::findBlobs(InputArray _image, InputArray _binaryImage, std::vector<Center> &centers) const
 {
-    CV_INSTRUMENT_REGION()
-
     Mat image = _image.getMat(), binaryImage = _binaryImage.getMat();
     (void)image;
     centers.clear();
@@ -306,8 +304,6 @@ void SimpleBlobDetectorImpl::findBlobs(InputArray _image, InputArray _binaryImag
 
 void SimpleBlobDetectorImpl::detect(InputArray image, std::vector<cv::KeyPoint>& keypoints, InputArray)
 {
-    CV_INSTRUMENT_REGION()
-
     //TODO: support mask
     keypoints.clear();
     Mat grayscaleImage;

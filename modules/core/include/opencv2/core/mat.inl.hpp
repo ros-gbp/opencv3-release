@@ -680,8 +680,7 @@ void Mat::addref()
         CV_XADD(&u->refcount, 1);
 }
 
-inline
-void Mat::release()
+inline void Mat::release()
 {
     if( u && CV_XADD(&u->refcount, -1) == 1 )
         deallocate();
@@ -2551,7 +2550,7 @@ MatConstIterator_<_Tp>& MatConstIterator_<_Tp>::operator = (const MatConstIterat
 }
 
 template<typename _Tp> inline
-const _Tp& MatConstIterator_<_Tp>::operator *() const
+_Tp MatConstIterator_<_Tp>::operator *() const
 {
     return *(_Tp*)(this->ptr);
 }
@@ -2657,7 +2656,7 @@ MatConstIterator_<_Tp> operator - (const MatConstIterator_<_Tp>& a, ptrdiff_t of
 }
 
 template<typename _Tp> inline
-const _Tp& MatConstIterator_<_Tp>::operator [](ptrdiff_t i) const
+_Tp MatConstIterator_<_Tp>::operator [](ptrdiff_t i) const
 {
     return *(_Tp*)MatConstIterator::operator [](i);
 }

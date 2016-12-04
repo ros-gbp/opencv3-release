@@ -17,10 +17,10 @@ using namespace cv;
 int main(int argc, const char** argv)
 {
     CommandLineParser cmd(argc, argv,
-        "{ c camera   |             | use camera }"
+        "{ c camera   | false       | use camera }"
         "{ f file     | ../data/768x576.avi | input video file }"
         "{ t type     | mog2        | method's type (knn, mog2) }"
-        "{ h help     |             | print help message }"
+        "{ h help     | false       | print help message }"
         "{ m cpu_mode | false       | press 'm' to switch OpenCL<->CPU}");
 
     if (cmd.has("help"))

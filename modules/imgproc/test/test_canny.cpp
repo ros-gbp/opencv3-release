@@ -47,7 +47,7 @@ using namespace std;
 class CV_CannyTest : public cvtest::ArrayTest
 {
 public:
-    CV_CannyTest(bool custom_deriv = false);
+    CV_CannyTest();
 
 protected:
     void get_test_array_types_and_sizes( int test_case_idx, vector<vector<Size> >& sizes, vector<vector<int> >& types );
@@ -61,11 +61,10 @@ protected:
     bool use_true_gradient;
     double threshold1, threshold2;
     bool test_cpp;
-    bool test_custom_deriv;
 };
 
 
-CV_CannyTest::CV_CannyTest(bool custom_deriv)
+CV_CannyTest::CV_CannyTest()
 {
     test_array[INPUT].push_back(NULL);
     test_array[OUTPUT].push_back(NULL);
@@ -76,7 +75,6 @@ CV_CannyTest::CV_CannyTest(bool custom_deriv)
     threshold1 = threshold2 = 0;
 
     test_cpp = false;
-    test_custom_deriv = custom_deriv;
 }
 
 
@@ -101,9 +99,6 @@ void CV_CannyTest::get_test_array_types_and_sizes( int test_case_idx,
 
     use_true_gradient = cvtest::randInt(rng) % 2 != 0;
     test_cpp = (cvtest::randInt(rng) & 256) == 0;
-
-    ts->printf(cvtest::TS::LOG, "Canny(size = %d x %d, aperture_size = %d, threshold1 = %g, threshold2 = %g, L2 = %s) test_cpp = %s (test case #%d)\n",
-        sizes[0][0].width, sizes[0][0].height, aperture_size, threshold1, threshold2, use_true_gradient ? "TRUE" : "FALSE", test_cpp ? "TRUE" : "FALSE", test_case_idx);
 }
 
 
@@ -128,24 +123,9 @@ double CV_CannyTest::get_success_error_level( int /*test_case_idx*/, int /*i*/, 
 
 void CV_CannyTest::run_func()
 {
-    if (test_custom_deriv)
-    {
-        cv::Mat _out = cv::cvarrToMat(test_array[OUTPUT][0]);
-        cv::Mat src = cv::cvarrToMat(test_array[INPUT][0]);
-        cv::Mat dx, dy;
-        int m = aperture_size;
-        Point anchor(m/2, m/2);
-        Mat dxkernel = cvtest::calcSobelKernel2D( 1, 0, m, 0 );
-        Mat dykernel = cvtest::calcSobelKernel2D( 0, 1, m, 0 );
-        cvtest::filter2D(src, dx, CV_16S, dxkernel, anchor, 0, BORDER_REPLICATE);
-        cvtest::filter2D(src, dy, CV_16S, dykernel, anchor, 0, BORDER_REPLICATE);
-        cv::Canny(dx, dy, _out, threshold1, threshold2, use_true_gradient);
-    }
-    else if(!test_cpp)
-    {
+    if(!test_cpp)
         cvCanny( test_array[INPUT][0], test_array[OUTPUT][0], threshold1, threshold2,
                 aperture_size + (use_true_gradient ? CV_CANNY_L2_GRADIENT : 0));
-    }
     else
     {
         cv::Mat _out = cv::cvarrToMat(test_array[OUTPUT][0]);
@@ -303,6 +283,5 @@ int CV_CannyTest::validate_test_results( int test_case_idx )
 }
 
 TEST(Imgproc_Canny, accuracy) { CV_CannyTest test; test.safe_run(); }
-TEST(Imgproc_Canny, accuracy_deriv) { CV_CannyTest test(true); test.safe_run(); }
 
 /* End of file. */
