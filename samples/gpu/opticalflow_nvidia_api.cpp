@@ -14,7 +14,8 @@
 #include <iomanip>
 #include "opencv2/core/cuda.hpp"
 #include "opencv2/cudalegacy.hpp"
-#include "opencv2/highgui.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/highgui/highgui_c.h"
 
 #if !defined(HAVE_CUDA)
 int main( int, const char** )

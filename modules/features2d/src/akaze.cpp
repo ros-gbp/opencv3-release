@@ -167,8 +167,6 @@ namespace cv
                               OutputArray descriptors,
                               bool useProvidedKeypoints)
         {
-            CV_INSTRUMENT_REGION()
-
             Mat img = image.getMat();
             if (img.channels() > 1)
                 cvtColor(image, img, COLOR_BGR2GRAY);

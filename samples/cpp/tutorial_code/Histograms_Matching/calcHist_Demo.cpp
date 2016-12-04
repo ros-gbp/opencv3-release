@@ -4,10 +4,11 @@
  * @author
  */
 
-#include "opencv2/highgui.hpp"
+#include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgcodecs.hpp"
-#include "opencv2/imgproc.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 #include <iostream>
+#include <stdio.h>
 
 using namespace std;
 using namespace cv;
@@ -15,19 +16,12 @@ using namespace cv;
 /**
  * @function main
  */
-int main(int argc, char** argv)
+int main( int, char** argv )
 {
   Mat src, dst;
 
   /// Load image
-  String imageName( "../data/lena.jpg" ); // by default
-
-  if (argc > 1)
-  {
-      imageName = argv[1];
-  }
-
-  src = imread( imageName, IMREAD_COLOR );
+  src = imread( argv[1], 1 );
 
   if( src.empty() )
     { return -1; }
