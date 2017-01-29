@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <package>
   <name>opencv3</name>
-  <version>3.1.0</version>
+  <version>3.2.0</version>
   <description>OpenCV 3.x</description>
 
   <maintainer email="vincent.rabaud@gmail.com">Vincent Rabaud</maintainer>
   <license>BSD</license>
 
-  <url type="website">http://opencvg.org</url>
-  <url type="bugtracker">http://code.opencv.org/projects/opencv/issues</url>
-  <url type="repository">https://github.com/itseez/opencv</url>
+  <url type="website">http://opencv.org</url>
+  <url type="bugtracker">https://github.com/opencv/opencv/issues</url>
+  <url type="repository">https://github.com/opencv/opencv</url>
 
   <author>The OpenCV team</author>
 
