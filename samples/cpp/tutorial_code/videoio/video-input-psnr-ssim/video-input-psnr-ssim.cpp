@@ -3,10 +3,10 @@
 #include <iomanip>  // for controlling float print precision
 #include <sstream>  // string to number conversion
 
-#include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat, Scalar)
-#include <opencv2/imgproc/imgproc.hpp>  // Gaussian Blur
-#include <opencv2/videoio/videoio.hpp>
-#include <opencv2/highgui/highgui.hpp>  // OpenCV window I/O
+#include <opencv2/core.hpp>     // Basic OpenCV structures (cv::Mat, Scalar)
+#include <opencv2/imgproc.hpp>  // Gaussian Blur
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui.hpp>  // OpenCV window I/O
 
 using namespace std;
 using namespace cv;
@@ -22,7 +22,7 @@ static void help()
         << "tests the similarity of two input videos first with PSNR, and for the frames "
         << "below a PSNR trigger value, also with MSSIM."                                   << endl
         << "Usage:"                                                                         << endl
-        << "./video-source referenceVideo useCaseTestVideo PSNR_Trigger_Value Wait_Between_Frames " << endl
+        << "./video-input-psnr-ssim <referenceVideo> <useCaseTestVideo> <PSNR_Trigger_Value> <Wait_Between_Frames> " << endl
         << "--------------------------------------------------------------------------"     << endl
         << endl;
 }
@@ -44,7 +44,6 @@ int main(int argc, char *argv[])
     conv << argv[3] << endl << argv[4];       // put in the strings
     conv >> psnrTriggerValue >> delay;        // take out the numbers
 
-    char c;
     int frameNum = -1;          // Frame counter
 
     VideoCapture captRefrnc(sourceReference), captUndTst(sourceCompareWith);
@@ -126,7 +125,7 @@ int main(int argc, char *argv[])
         imshow(WIN_RF, frameReference);
         imshow(WIN_UT, frameUnderTest);
 
-        c = (char)waitKey(delay);
+        char c = (char)waitKey(delay);
         if (c == 27) break;
     }
 
