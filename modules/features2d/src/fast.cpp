@@ -45,6 +45,7 @@ The references are:
 #include "fast_score.hpp"
 #include "opencl_kernels_features2d.hpp"
 
+#include "opencv2/core/openvx/ovx_defs.hpp"
 #if defined _MSC_VER
 # pragma warning( disable : 4127)
 #endif
@@ -329,8 +330,71 @@ static bool ocl_FAST( InputArray _img, std::vector<KeyPoint>& keypoints,
 }
 #endif
 
+
+#ifdef HAVE_OPENVX
+static bool openvx_FAST(InputArray _img, std::vector<KeyPoint>& keypoints,
+                        int _threshold, bool nonmaxSuppression, int type)
+{
+    using namespace ivx;
+
+    // Nonmax suppression is done differently in OpenCV than in OpenVX
+    // 9/16 is the only supported mode in OpenVX
+    if(nonmaxSuppression || type != FastFeatureDetector::TYPE_9_16)
+        return false;
+
+    Mat imgMat = _img.getMat();
+    if(imgMat.empty() || imgMat.type() != CV_8UC1)
+        return false;
+
+    try
+    {
+        Context context = Context::create();
+        Image img = Image::createFromHandle(context, Image::matTypeToFormat(imgMat.type()),
+                                            Image::createAddressing(imgMat), (void*)imgMat.data);
+        ivx::Scalar threshold = ivx::Scalar::create<VX_TYPE_FLOAT32>(context, _threshold);
+        vx_size capacity = imgMat.cols * imgMat.rows;
+        Array corners = Array::create(context, VX_TYPE_KEYPOINT, capacity);
+
+        ivx::Scalar numCorners = ivx::Scalar::create<VX_TYPE_SIZE>(context, 0);
+
+        IVX_CHECK_STATUS(vxuFastCorners(context, img, threshold, (vx_bool)nonmaxSuppression, corners, numCorners));
+
+        size_t nPoints = numCorners.getValue<vx_size>();
+        keypoints.clear(); keypoints.reserve(nPoints);
+        std::vector<vx_keypoint_t> vxCorners;
+        corners.copyTo(vxCorners);
+        for(size_t i = 0; i < nPoints; i++)
+        {
+            vx_keypoint_t kp = vxCorners[i];
+            //if nonmaxSuppression is false, kp.strength is undefined
+            keypoints.push_back(KeyPoint((float)kp.x, (float)kp.y, 7.f, -1, kp.strength));
+        }
+
+#ifdef VX_VERSION_1_1
+        //we should take user memory back before release
+        //(it's not done automatically according to standard)
+        img.swapHandle();
+#endif
+    }
+    catch (RuntimeError & e)
+    {
+        VX_DbgThrow(e.what());
+    }
+    catch (WrapperError & e)
+    {
+        VX_DbgThrow(e.what());
+    }
+
+    return true;
+}
+
+#endif
+
+
 void FAST(InputArray _img, std::vector<KeyPoint>& keypoints, int threshold, bool nonmax_suppression, int type)
 {
+    CV_INSTRUMENT_REGION()
+
 #ifdef HAVE_OPENCL
   if( ocl::useOpenCL() && _img.isUMat() && type == FastFeatureDetector::TYPE_9_16 &&
       ocl_FAST(_img, keypoints, threshold, nonmax_suppression, 10000))
@@ -339,6 +403,9 @@ void FAST(InputArray _img, std::vector<KeyPoint>& keypoints, int threshold, bool
     return;
   }
 #endif
+
+    CV_OVX_RUN(true,
+               openvx_FAST(_img, keypoints, threshold, nonmax_suppression, type))
 
   switch(type) {
     case FastFeatureDetector::TYPE_5_8:
@@ -360,6 +427,8 @@ void FAST(InputArray _img, std::vector<KeyPoint>& keypoints, int threshold, bool
 
 void FAST(InputArray _img, std::vector<KeyPoint>& keypoints, int threshold, bool nonmax_suppression)
 {
+    CV_INSTRUMENT_REGION()
+
     FAST(_img, keypoints, threshold, nonmax_suppression, FastFeatureDetector::TYPE_9_16);
 }
 
@@ -373,6 +442,8 @@ public:
 
     void detect( InputArray _image, std::vector<KeyPoint>& keypoints, InputArray _mask )
     {
+        CV_INSTRUMENT_REGION()
+
         Mat mask = _mask.getMat(), grayImage;
         UMat ugrayImage;
         _InputArray gray = _image;
