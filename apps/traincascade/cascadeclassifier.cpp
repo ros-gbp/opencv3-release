@@ -310,7 +310,8 @@ bool CvCascadeClassifier::updateTrainingSet( double minimumAcceptanceRatio, doub
     int proNumNeg = cvRound( ( ((double)numNeg) * ((double)posCount) ) / numPos ); // apply only a fraction of negative samples. double is required since overflow is possible
     int negCount = fillPassedSamples( posCount, proNumNeg, false, minimumAcceptanceRatio, negConsumed );
     if ( !negCount )
-        return false;
+        if ( !(negConsumed > 0 && ((double)negCount+1)/(double)negConsumed <= minimumAcceptanceRatio) )
+            return false;
 
     curNumSamples = posCount + negCount;
     acceptanceRatio = negConsumed == 0 ? 0 : ( (double)negCount/(double)(int64)negConsumed );
@@ -411,6 +412,7 @@ bool CvCascadeClassifier::readStages( const FileNode &node)
 }
 
 // For old Haar Classifier file saving
+#define ICV_HAAR_TYPE_ID              "opencv-haar-classifier"
 #define ICV_HAAR_SIZE_NAME            "size"
 #define ICV_HAAR_STAGES_NAME          "stages"
 #define ICV_HAAR_TREES_NAME             "trees"
@@ -433,11 +435,12 @@ void CvCascadeClassifier::save( const string filename, bool baseFormat )
     if ( !fs.isOpened() )
         return;
 
-    fs << FileStorage::getDefaultObjectName(filename) << "{";
+    fs << FileStorage::getDefaultObjectName(filename);
     if ( !baseFormat )
     {
         Mat featureMap;
         getUsedFeaturesIdxMap( featureMap );
+        fs << "{";
         writeParams( fs );
         fs << CC_STAGE_NUM << (int)stageClassifiers.size();
         writeStages( fs, featureMap );
@@ -449,6 +452,7 @@ void CvCascadeClassifier::save( const string filename, bool baseFormat )
         CvSeq* weak;
         if ( cascadeParams.featureType != CvFeatureParams::HAAR )
             CV_Error( CV_StsBadFunc, "old file format is used for Haar-like features only");
+        fs << "{:" ICV_HAAR_TYPE_ID;
         fs << ICV_HAAR_SIZE_NAME << "[:" << cascadeParams.winSize.width <<
             cascadeParams.winSize.height << "]";
         fs << ICV_HAAR_STAGES_NAME << "[";
