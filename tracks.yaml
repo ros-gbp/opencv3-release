@@ -83,11 +83,11 @@ tracks:
     devel_branch: null
     last_version: 3.2.0
     name: upstream
-    patches: kinetic
+    patches: lunar
     release_inc: '2'
     release_repo_url: null
     release_tag: null
-    ros_distro: kinetic
+    ros_distro: lunar
     vcs_type: tar
     vcs_uri: /home/vrabaud/workspace/ws_opencv3/tmp/opencv.tar.gz
     version: :{ask}
