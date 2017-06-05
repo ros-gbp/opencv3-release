@@ -11,7 +11,7 @@ tracks:
     - git-bloom-generate -y rosrpm --prefix release/:{ros_distro} :{ros_distro} -i
       :{release_inc}
     devel_branch: null
-    last_version: 3.2.0
+    last_version: 3.1.0
     name: upstream
     patches: indigo
     release_inc: '0'
