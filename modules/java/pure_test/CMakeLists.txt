@@ -1,6 +1,4 @@
-if(NOT ANT_EXECUTABLE
-  OR NOT BUILD_opencv_imgcodecs
-  OR NOT BUILD_opencv_calib3d)
+if(NOT ANT_EXECUTABLE)
   return()
 endif()
 

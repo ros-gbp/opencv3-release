@@ -42,10 +42,6 @@
 
 #include "precomp.hpp"
 
-#ifndef _DEBUG
-#define QT_NO_DEBUG_OUTPUT
-#endif
-
 #if defined( HAVE_QT_OPENGL )
 #include <QtOpenGL>
 #include <QGLWidget>
