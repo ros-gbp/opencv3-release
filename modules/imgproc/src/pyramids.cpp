@@ -1290,7 +1290,7 @@ static bool openvx_pyrDown( InputArray _src, OutputArray _dst, const Size& _dsz,
 
     try
     {
-        Context context = ovx::getOpenVXContext();
+        Context context = Context::create();
         if(context.vendorID() == VX_ID_KHRONOS)
         {
             // This implementation performs floor-like rounding

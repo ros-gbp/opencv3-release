@@ -286,7 +286,7 @@ static bool openvx_harris(Mat image, OutputArray _corners,
 
     try
     {
-        Context context = ovx::getOpenVXContext();
+        Context context = Context::create();
 
         Image ovxImage = Image::createFromHandle(context, Image::matTypeToFormat(image.type()),
                                                  Image::createAddressing(image), image.data);

@@ -312,16 +312,8 @@ CvCapture* cvCreateFileCapture_VFW (const char* filename)
 class CvCaptureCAM_VFW : public CvCapture
 {
 public:
-    CvCaptureCAM_VFW()
-    {
-        CoInitialize(NULL);
-        init();
-    }
-    virtual ~CvCaptureCAM_VFW()
-    {
-        close();
-        CoUninitialize();
-    }
+    CvCaptureCAM_VFW() { init(); }
+    virtual ~CvCaptureCAM_VFW() { close(); }
 
     virtual bool open( int index );
     virtual void close();
@@ -681,16 +673,8 @@ CvCapture* cvCreateCameraCapture_VFW( int index )
 class CvVideoWriter_VFW : public CvVideoWriter
 {
 public:
-    CvVideoWriter_VFW()
-    {
-        CoInitialize(NULL);
-        init();
-    }
-    virtual ~CvVideoWriter_VFW()
-    {
-        close();
-        CoUninitialize();
-    }
+    CvVideoWriter_VFW() { init(); }
+    virtual ~CvVideoWriter_VFW() { close(); }
 
     virtual bool open( const char* filename, int fourcc,
                        double fps, CvSize frameSize, bool isColor );
