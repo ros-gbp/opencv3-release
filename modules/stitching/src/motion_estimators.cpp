@@ -199,7 +199,7 @@ bool AffineBasedEstimator::estimate(const std::vector<ImageFeatures> &features,
                                     const std::vector<MatchesInfo> &pairwise_matches,
                                     std::vector<CameraParams> &cameras)
 {
-    cameras.assign(features.size(), CameraParams());
+    cameras.resize(features.size());
     const int num_images = static_cast<int>(features.size());
 
     // find maximum spaning tree on pairwise matches

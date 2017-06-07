@@ -551,11 +551,11 @@ CirclesGridFinderParameters::CirclesGridFinderParameters()
   keypointScale = 1;
 
   minGraphConfidence = 9;
-  vertexGain = 1;
-  vertexPenalty = -0.6f;
+  vertexGain = 2;
+  vertexPenalty = -5;
   edgeGain = 1;
-  edgePenalty = -0.6f;
-  existingVertexGain = 10000;
+  edgePenalty = -5;
+  existingVertexGain = 0;
 
   minRNGEdgeSwitchDist = 5.f;
   gridType = SYMMETRIC_GRID;

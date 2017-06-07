@@ -1282,7 +1282,7 @@ namespace cv
 
         try
         {
-            ivx::Context ctx = ovx::getOpenVXContext();
+            ivx::Context ctx = ivx::Context::create();
 #if VX_VERSION <= VX_VERSION_1_0
             if (ctx.vendorID() == VX_ID_KHRONOS && (range % histSize))
                 return false;
@@ -3773,7 +3773,7 @@ static bool openvx_equalize_hist(Mat srcMat, Mat dstMat)
 
     try
     {
-        Context context = ovx::getOpenVXContext();
+        Context context = Context::create();
         Image srcImage = Image::createFromHandle(context, Image::matTypeToFormat(srcMat.type()),
                                                  Image::createAddressing(srcMat), srcMat.data);
         Image dstImage = Image::createFromHandle(context, Image::matTypeToFormat(dstMat.type()),
