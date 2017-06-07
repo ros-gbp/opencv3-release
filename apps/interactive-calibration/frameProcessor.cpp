@@ -7,6 +7,7 @@
 
 #include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/aruco/charuco.hpp>
 #include <opencv2/highgui.hpp>
 
 #include <vector>
@@ -74,7 +75,6 @@ bool CalibProcessor::detectAndParseChessboard(const cv::Mat &frame)
 
 bool CalibProcessor::detectAndParseChAruco(const cv::Mat &frame)
 {
-#ifdef HAVE_OPENCV_ARUCO
     cv::Ptr<cv::aruco::Board> board = mCharucoBoard.staticCast<cv::aruco::Board>();
 
     std::vector<std::vector<cv::Point2f> > corners, rejected;
@@ -95,16 +95,14 @@ bool CalibProcessor::detectAndParseChAruco(const cv::Mat &frame)
         }
         centerX /= currentCharucoCorners.size[0];
         centerY /= currentCharucoCorners.size[0];
-
+        //cv::circle(frame, cv::Point2f(centerX, centerY), 10, cv::Scalar(0, 255, 0), 10);
         mTemplateLocations.insert(mTemplateLocations.begin(), cv::Point2f(centerX, centerY));
         cv::aruco::drawDetectedCornersCharuco(frame, currentCharucoCorners, currentCharucoIds);
         mCurrentCharucoCorners = currentCharucoCorners;
         mCurrentCharucoIds = currentCharucoIds;
         return true;
     }
-#else
-    (void)frame;
-#endif
+
     return false;
 }
 
@@ -233,7 +231,6 @@ bool CalibProcessor::checkLastFrame()
         }
     }
     else {
-#ifdef HAVE_OPENCV_ARUCO
         cv::Mat r, t, angles;
         std::vector<cv::Point3f> allObjPoints;
         allObjPoints.reserve(mCurrentCharucoIds.total());
@@ -251,7 +248,6 @@ bool CalibProcessor::checkLastFrame()
             mCalibData->allCharucoCorners.pop_back();
             mCalibData->allCharucoIds.pop_back();
         }
-#endif
     }
     return isFrameBad;
 }
@@ -270,12 +266,10 @@ CalibProcessor::CalibProcessor(cv::Ptr<calibrationData> data, captureParameters 
     switch(mBoardType)
     {
     case chAruco:
-#ifdef HAVE_OPENCV_ARUCO
         mArucoDictionary = cv::aruco::getPredefinedDictionary(
                     cv::aruco::PREDEFINED_DICTIONARY_NAME(capParams.charucoDictName));
         mCharucoBoard = cv::aruco::CharucoBoard::create(mBoardSize.width, mBoardSize.height, capParams.charucoSquareLenght,
                                                         capParams.charucoMarkerSize, mArucoDictionary);
-#endif
         break;
     case AcirclesGrid:
         mBlobDetectorPtr = cv::SimpleBlobDetector::create();
