@@ -236,7 +236,7 @@ namespace cv
 
         try
         {
-            ivx::Context ctx = ovx::getOpenVXContext();
+            ivx::Context ctx = ivx::Context::create();
             if ((vx_size)ksize > ctx.convolutionMaxDimension())
                 return false;
 

@@ -1068,8 +1068,6 @@ namespace
     private:
         int windowSize;
         int partitions;
-        GpuMat devHist;
-        GpuMat devCoarseHist;
     };
 
     MedianFilter::MedianFilter(int srcType, int _windowSize, int _partitions) :
@@ -1101,8 +1099,9 @@ namespace
         // Note - these are hardcoded in the actual GPU kernel. Do not change these values.
         int histSize=256, histCoarseSize=8;
 
-        devHist.create(1, src.cols*histSize*partitions, CV_32SC1);
-        devCoarseHist.create(1, src.cols*histCoarseSize*partitions, CV_32SC1);
+        BufferPool pool(_stream);
+        GpuMat devHist = pool.getBuffer(1, src.cols*histSize*partitions,CV_32SC1);
+        GpuMat devCoarseHist = pool.getBuffer(1,src.cols*histCoarseSize*partitions,CV_32SC1);
 
         devHist.setTo(0, _stream);
         devCoarseHist.setTo(0, _stream);

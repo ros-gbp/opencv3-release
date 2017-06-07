@@ -68,9 +68,7 @@ endfunction()
 
 if(BUILD_TBB)
   add_subdirectory("${OpenCV_SOURCE_DIR}/3rdparty/tbb")
-  if(NOT TARGET tbb)
-    return()
-  endif()
+  message(STATUS "Found TBB: build")
   set(HAVE_TBB TRUE)
 endif()
 
