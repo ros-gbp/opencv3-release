@@ -782,7 +782,7 @@ static bool openvx_canny(const Mat& src, Mat& dst, int loVal, int hiVal, int kSi
 {
     using namespace ivx;
 
-    Context context = ovx::getOpenVXContext();
+    Context context = Context::create();
     try
     {
     Image _src = Image::createFromHandle(
