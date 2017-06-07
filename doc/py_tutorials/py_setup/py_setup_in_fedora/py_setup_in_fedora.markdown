@@ -102,10 +102,13 @@ yum install eigen3-devel
 @endcode
 If you want to build **documentation** ( *Yes, you can create offline version of OpenCV's complete
 official documentation in your system in HTML with full search facility so that you need not access
-internet always if any question, and it is quite FAST!!!* ), you need to install **Doxygen** (a
-documentation generation tool).
+internet always if any question, and it is quite FAST!!!* ), you need to install **Sphinx** (a
+documentation generation tool) and **pdflatex** (if you want to create a PDF version of it). ( Also
+while configuring installation with CMake, don't forget to pass -D BUILD_DOCS=ON. More details
+below.)
 @code{.sh}
-yum install doxygen
+yum install python-sphinx
+yum install texlive
 @endcode
 ### Downloading OpenCV
 
@@ -171,7 +174,6 @@ setup you got, make sure that following fields are filled (below is the some imp
 configuration I got). These fields should be filled appropriately in your system also. Otherwise
 some problem has happened. So check if you have correctly performed above steps.
 @code{.sh}
-...
 --   GUI:
 --     GTK+ 2.x:                    YES (ver 2.24.19)
 --     GThread :                    YES (ver 2.36.3)
@@ -203,7 +205,15 @@ some problem has happened. So check if you have correctly performed above steps.
 --     numpy:                       /usr/lib/python2.7/site-packages/numpy/core/include (ver 1.7.1)
 --     packages path:               lib/python2.7/site-packages
 
-...
+--   Documentation:
+--     Build Documentation:         YES
+--     Sphinx:                      /usr/bin/sphinx-build (ver 1.1.3)
+--     PdfLaTeX compiler:           /usr/bin/pdflatex
+--
+--   Tests and samples:
+--     Tests:                       NO
+--     Performance tests:           NO
+--     C/C++ Examples:              NO
 @endcode
 Many other flags and settings are there. It is left for you for further exploration.
 

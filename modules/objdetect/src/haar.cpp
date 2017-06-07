@@ -824,7 +824,10 @@ cvRunHaarClassifierCascadeSum( const CvHaarClassifierCascade* _cascade,
                                CvPoint pt, double& stage_sum, int start_stage )
 {
 #ifdef CV_HAAR_USE_AVX
-    bool haveAVX = cv::checkHardwareSupport(CV_CPU_AVX);
+    bool haveAVX = false;
+    if(cv::checkHardwareSupport(CV_CPU_AVX))
+    if(__xgetbv()&0x6)// Check if the OS will save the YMM registers
+       haveAVX = true;
 #else
 #  ifdef CV_HAAR_USE_SSE
     bool haveSSE2 = cv::checkHardwareSupport(CV_CPU_SSE2);

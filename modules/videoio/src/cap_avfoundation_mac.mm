@@ -293,7 +293,7 @@ void CvCaptureCAM::stopCaptureDevice() {
 
     [mCaptureSession release];
     [mCaptureDeviceInput release];
-    // [mCaptureDevice release]; fix #7833
+    [mCaptureDevice release];
 
     [mCaptureVideoDataOutput release];
     [mCapture release];
