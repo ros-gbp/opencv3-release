@@ -97,6 +97,7 @@ endif()
 @ANDROID_CONFIGCMAKE@
 
 @IPPICV_CONFIGCMAKE@
+@IPPIW_CONFIGCMAKE@
 
 # Some additional settings are required if OpenCV is built as static libs
 set(OpenCV_SHARED @BUILD_SHARED_LIBS@)
@@ -197,6 +198,14 @@ foreach(__cvcomponent ${OpenCV_FIND_COMPONENTS})
         IMPORTED_LOCATION_RELEASE "${__location_release}"
       )
     endif()
+  endif()
+  # OpenCV supports Debug and Release only.
+  # RelWithDebInfo and MinSizeRel are mapped to Release
+  if(TARGET ${__cvcomponent})
+      set_target_properties(${__cvcomponent} PROPERTIES
+          MAP_IMPORTED_CONFIG_MINSIZEREL "Release"
+          MAP_IMPORTED_CONFIG_RELWITHDEBINFO "Release"
+      )
   endif()
 endforeach()
 
