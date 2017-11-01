@@ -69,8 +69,8 @@ kp = star.detect(img,None)
 # compute the descriptors with BRIEF
 kp, des = brief.compute(img, kp)
 
-print brief.descriptorSize()
-print des.shape
+print( brief.descriptorSize() )
+print( des.shape )
 @endcode
 The function brief.getDescriptorSize() gives the \f$n_d\f$ size used in bytes. By default it is 32. Next one
 is matching, which will be done in another chapter.
@@ -81,4 +81,4 @@ Additional Resources
 -#  Michael Calonder, Vincent Lepetit, Christoph Strecha, and Pascal Fua, "BRIEF: Binary Robust
     Independent Elementary Features", 11th European Conference on Computer Vision (ECCV), Heraklion,
     Crete. LNCS Springer, September 2010.
-2.  LSH (Locality Sensitive Hasing) at wikipedia.
+2.  [LSH (Locality Sensitive Hashing)](https://en.wikipedia.org/wiki/Locality-sensitive_hashing) at wikipedia.
