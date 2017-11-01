@@ -135,9 +135,13 @@ Ptr<LogisticRegression> LogisticRegression::load(const String& filepath, const S
 
 bool LogisticRegressionImpl::train(const Ptr<TrainData>& trainData, int)
 {
+    CV_TRACE_FUNCTION_SKIP_NESTED();
     // return value
     bool ok = false;
 
+    if (trainData.empty()) {
+        return false;
+    }
     clear();
     Mat _data_i = trainData->getSamples();
     Mat _labels_i = trainData->getResponses();
@@ -310,6 +314,7 @@ float LogisticRegressionImpl::predict(InputArray samples, OutputArray results, i
 
 Mat LogisticRegressionImpl::calc_sigmoid(const Mat& data) const
 {
+    CV_TRACE_FUNCTION();
     Mat dest;
     exp(-data, dest);
     return 1.0/(1.0+dest);
@@ -317,6 +322,7 @@ Mat LogisticRegressionImpl::calc_sigmoid(const Mat& data) const
 
 double LogisticRegressionImpl::compute_cost(const Mat& _data, const Mat& _labels, const Mat& _init_theta)
 {
+    CV_TRACE_FUNCTION();
     float llambda = 0;                   /*changed llambda from int to float to solve issue #7924*/
     int m;
     int n;
@@ -407,6 +413,7 @@ struct LogisticRegressionImpl_ComputeDradient_Impl : ParallelLoopBody
 
 void LogisticRegressionImpl::compute_gradient(const Mat& _data, const Mat& _labels, const Mat &_theta, const double _lambda, Mat & _gradient )
 {
+    CV_TRACE_FUNCTION();
     const int m = _data.rows;
     Mat pcal_a, pcal_b, pcal_ab;
 
@@ -428,6 +435,7 @@ void LogisticRegressionImpl::compute_gradient(const Mat& _data, const Mat& _labe
 
 Mat LogisticRegressionImpl::batch_gradient_descent(const Mat& _data, const Mat& _labels, const Mat& _init_theta)
 {
+    CV_TRACE_FUNCTION();
     // implements batch gradient descent
     if(this->params.alpha<=0)
     {
@@ -565,7 +573,9 @@ Mat LogisticRegressionImpl::remap_labels(const Mat& _labels_i, const map<int, in
 
     for(int i =0;i<labels.rows;i++)
     {
-        new_labels.at<int>(i,0) = lmap.find(labels.at<int>(i,0))->second;
+        map<int, int>::const_iterator val = lmap.find(labels.at<int>(i,0));
+        CV_Assert(val != lmap.end());
+        new_labels.at<int>(i,0) = val->second;
     }
     return new_labels;
 }
