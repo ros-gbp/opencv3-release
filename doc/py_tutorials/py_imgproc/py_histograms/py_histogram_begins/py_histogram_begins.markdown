@@ -46,7 +46,7 @@ histograms](http://docs.opencv.org/doc/tutorials/imgproc/histograms/histogram_ca
 
 So what you do is simply split the whole histogram to 16 sub-parts and value of each sub-part is the
 sum of all pixel count in it. This each sub-part is called "BIN". In first case, number of bins
-where 256 (one for each pixel) while in second case, it is only 16. BINS is represented by the term
+were 256 (one for each pixel) while in second case, it is only 16. BINS is represented by the term
 **histSize** in OpenCV docs.
 
 **DIMS** : It is the number of parameters for which we collect the data. In this case, we collect
@@ -99,7 +99,7 @@ as 0-0.99, 1-1.99, 2-2.99 etc. So final range would be 255-255.99. To represent 
 np.histogram(). So for one-dimensional histograms, you can better try that. Don't forget to set
 minlength = 256 in np.bincount. For example, hist = np.bincount(img.ravel(),minlength=256)
 
-@note OpenCV function is more faster than (around 40X) than np.histogram(). So stick with OpenCV
+@note OpenCV function is faster than (around 40X) than np.histogram(). So stick with OpenCV
 function.
 
 Now we should plot histograms, but how?
