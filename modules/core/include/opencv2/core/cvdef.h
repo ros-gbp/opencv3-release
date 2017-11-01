@@ -48,13 +48,37 @@
 //! @addtogroup core_utils
 //! @{
 
+#if !defined CV_DOXYGEN && !defined CV_IGNORE_DEBUG_BUILD_GUARD
+#if (defined(_MSC_VER) && (defined(DEBUG) || defined(_DEBUG))) || \
+    (defined(_GLIBCXX_DEBUG) || defined(_GLIBCXX_DEBUG_PEDANTIC))
+// Guard to prevent using of binary incompatible binaries / runtimes
+// https://github.com/opencv/opencv/pull/9161
+#define CV__DEBUG_NS_BEGIN namespace debug_build_guard {
+#define CV__DEBUG_NS_END }
+namespace cv { namespace debug_build_guard { } using namespace debug_build_guard; }
+#endif
+#endif
+
+#ifndef CV__DEBUG_NS_BEGIN
+#define CV__DEBUG_NS_BEGIN
+#define CV__DEBUG_NS_END
+#endif
+
+
 #ifdef __OPENCV_BUILD
 #include "cvconfig.h"
 #endif
 
-#if !defined _CRT_SECURE_NO_DEPRECATE && defined _MSC_VER && _MSC_VER > 1300
-#  define _CRT_SECURE_NO_DEPRECATE /* to avoid multiple Visual Studio warnings */
+#ifndef __CV_EXPAND
+#define __CV_EXPAND(x) x
 #endif
+
+#ifndef __CV_CAT
+#define __CV_CAT__(x, y) x ## y
+#define __CV_CAT_(x, y) __CV_CAT__(x, y)
+#define __CV_CAT(x, y) __CV_CAT_(x, y)
+#endif
+
 
 // undef problematic defines sometimes defined by system headers (windows.h in particular)
 #undef small
@@ -129,6 +153,8 @@
 
 #define CV_CPU_NEON   100
 
+#define CV_CPU_VSX 200
+
 // when adding to this list remember to update the following enum
 #define CV_HARDWARE_MAX_FEATURE 255
 
@@ -158,7 +184,9 @@ enum CpuFeatures {
     CPU_AVX_512VBMI     = 20,
     CPU_AVX_512VL       = 21,
 
-    CPU_NEON            = 100
+    CPU_NEON            = 100,
+
+    CPU_VSX             = 200
 };
 
 
@@ -167,7 +195,7 @@ enum CpuFeatures {
 
 /* fundamental constants */
 #define CV_PI   3.1415926535897932384626433832795
-#define CV_2PI 6.283185307179586476925286766559
+#define CV_2PI  6.283185307179586476925286766559
 #define CV_LOG2 0.69314718055994530941723212145818
 
 #if defined __ARM_FP16_FORMAT_IEEE \
@@ -220,7 +248,7 @@ Cv64suf;
 #  define DISABLE_OPENCV_24_COMPATIBILITY
 #endif
 
-#if (defined WIN32 || defined _WIN32 || defined WINCE || defined __CYGWIN__) && defined CVAPI_EXPORTS
+#if (defined _WIN32 || defined WINCE || defined __CYGWIN__) && defined CVAPI_EXPORTS
 #  define CV_EXPORTS __declspec(dllexport)
 #elif defined __GNUC__ && __GNUC__ >= 4
 #  define CV_EXPORTS __attribute__ ((visibility ("default")))
@@ -292,6 +320,29 @@ Cv64suf;
 #endif
 
 /****************************************************************************************\
+*                                    static analysys                                     *
+\****************************************************************************************/
+
+// In practice, some macro are not processed correctly (noreturn is not detected).
+// We need to use simplified definition for them.
+#ifndef CV_STATIC_ANALYSIS
+# if defined(__KLOCWORK__) || defined(__clang_analyzer__) || defined(__COVERITY__)
+#   define CV_STATIC_ANALYSIS
+# endif
+#endif
+
+/****************************************************************************************\
+*                                    Thread sanitizer                                    *
+\****************************************************************************************/
+#ifndef CV_THREAD_SANITIZER
+# if defined(__has_feature)
+#   if __has_feature(thread_sanitizer)
+#     define CV_THREAD_SANITIZER
+#   endif
+# endif
+#endif
+
+/****************************************************************************************\
 *          exchange-add operation for atomic operations on reference counters            *
 \****************************************************************************************/
 
@@ -336,11 +387,25 @@ Cv64suf;
 
 
 /****************************************************************************************\
+*                                    C++ 11                                              *
+\****************************************************************************************/
+#ifndef CV_CXX11
+#  if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
+#    define CV_CXX11 1
+#  endif
+#else
+#  if CV_CXX11 == 0
+#    undef CV_CXX11
+#  endif
+#endif
+
+
+/****************************************************************************************\
 *                                    C++ Move semantics                                  *
 \****************************************************************************************/
 
 #ifndef CV_CXX_MOVE_SEMANTICS
-#  if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__) || defined(_MSC_VER) && _MSC_VER >= 1600
+#  if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__) || (defined(_MSC_VER) && _MSC_VER >= 1600)
 #    define CV_CXX_MOVE_SEMANTICS 1
 #  elif defined(__clang)
 #    if __has_feature(cxx_rvalue_references)
@@ -350,6 +415,21 @@ Cv64suf;
 #else
 #  if CV_CXX_MOVE_SEMANTICS == 0
 #    undef CV_CXX_MOVE_SEMANTICS
+#  endif
+#endif
+
+/****************************************************************************************\
+*                                    C++11 std::array                                    *
+\****************************************************************************************/
+
+#ifndef CV_CXX_STD_ARRAY
+#  if __cplusplus >= 201103L
+#    define CV_CXX_STD_ARRAY 1
+#    include <array>
+#  endif
+#else
+#  if CV_CXX_STD_ARRAY == 0
+#    undef CV_CXX_STD_ARRAY
 #  endif
 #endif
 
