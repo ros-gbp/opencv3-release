@@ -21,10 +21,8 @@ protected:
     {
     public:
         std::vector<Mat> layers;
-        Octave();
         Octave(std::vector<Mat> layers);
         virtual ~Octave();
-        std::vector<Mat> getLayers();
         Mat getLayerAt(int i);
     };
 
@@ -33,10 +31,8 @@ protected:
     public:
         std::vector<Mat> layers;
 
-        DOGOctave();
         DOGOctave(std::vector<Mat> layers);
         virtual ~DOGOctave();
-        std::vector<Mat> getLayers();
         Mat getLayerAt(int i);
     };
 
@@ -53,29 +49,20 @@ public:
         float sigma0;
         int omin;
         float step;
-        Params();
         Params(int octavesN, int layersN, float sigma0, int omin);
         void clear();
     };
     Params params;
 
-    Pyramid();
     Pyramid(const Mat& img, int octavesN, int layersN = 2, float sigma0 = 1, int omin = 0,
             bool DOG = false);
     Mat getLayer(int octave, int layer);
     Mat getDOGLayer(int octave, int layer);
-    float getSigma(int octave, int layer);
     float getSigma(int layer);
 
     virtual ~Pyramid();
-    Params getParams();
     void clear();
-    bool empty();
 };
-
-Pyramid::Pyramid()
-{
-}
 
 /**
  * Pyramid class constructor
@@ -235,15 +222,6 @@ Mat Pyramid::getDOGLayer(int octave, int layer)
 }
 
 /**
- * Return sigma value of indicated octave and layer
- */
-float Pyramid::getSigma(int octave, int layer)
-{
-
-    return powf(2.0f, float(octave)) * powf(params.step, float(layer)) * params.sigma0;
-}
-
-/**
  * Return sigma value of indicated layer
  * sigma value of layer is the same at each octave
  * i.e. sigma of first layer at each octave is sigma0
@@ -272,19 +250,6 @@ void Pyramid::clear()
 }
 
 /**
- * Empty Pyramid
- * @return
- */
-bool Pyramid::empty()
-{
-    return octaves.empty();
-}
-
-Pyramid::Params::Params()
-{
-}
-
-/**
  * Params for Pyramid class
  *
  */
@@ -293,14 +258,6 @@ Pyramid::Params::Params(int octavesN_, int layersN_, float sigma0_, int omin_) :
 {
     CV_Assert(layersN > 0 && octavesN_>0);
     step = powf(2, 1.0f / layersN);
-}
-
-/**
- * Returns Pyramid's params
- */
-Pyramid::Params Pyramid::getParams()
-{
-    return params;
 }
 
 /**
@@ -321,18 +278,6 @@ void Pyramid::Params::clear()
 Pyramid::Octave::Octave(std::vector<Mat> _layers) : layers(_layers) {}
 
 /**
- * Return layers of the Octave
- */
-std::vector<Mat> Pyramid::Octave::getLayers()
-{
-    return layers;
-}
-
-Pyramid::Octave::Octave()
-{
-}
-
-/**
  * Return the Octave's layer at index i
  */
 Mat Pyramid::Octave::getLayerAt(int i)
@@ -345,19 +290,10 @@ Pyramid::Octave::~Octave()
 {
 }
 
-Pyramid::DOGOctave::DOGOctave()
-{
-}
-
 Pyramid::DOGOctave::DOGOctave(std::vector<Mat> _layers) : layers(_layers) {}
 
 Pyramid::DOGOctave::~DOGOctave()
 {
-}
-
-std::vector<Mat> Pyramid::DOGOctave::getLayers()
-{
-    return layers;
 }
 
 Mat Pyramid::DOGOctave::getLayerAt(int i)

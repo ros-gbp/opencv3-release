@@ -7,6 +7,23 @@
 #include "cv_cpu_config.h"
 #include "cv_cpu_helper.h"
 
+#ifdef CV_CPU_DISPATCH_MODE
+#define CV_CPU_OPTIMIZATION_NAMESPACE __CV_CAT(opt_, CV_CPU_DISPATCH_MODE)
+#define CV_CPU_OPTIMIZATION_NAMESPACE_BEGIN namespace __CV_CAT(opt_, CV_CPU_DISPATCH_MODE) {
+#define CV_CPU_OPTIMIZATION_NAMESPACE_END }
+#else
+#define CV_CPU_OPTIMIZATION_NAMESPACE cpu_baseline
+#define CV_CPU_OPTIMIZATION_NAMESPACE_BEGIN namespace cpu_baseline {
+#define CV_CPU_OPTIMIZATION_NAMESPACE_END }
+#endif
+
+
+#define __CV_CPU_DISPATCH_CHAIN_END(fn, args, mode, ...)  /* done */
+#define __CV_CPU_DISPATCH(fn, args, mode, ...) __CV_EXPAND(__CV_CPU_DISPATCH_CHAIN_ ## mode(fn, args, __VA_ARGS__))
+#define __CV_CPU_DISPATCH_EXPAND(fn, args, ...) __CV_EXPAND(__CV_CPU_DISPATCH(fn, args, __VA_ARGS__))
+#define CV_CPU_DISPATCH(fn, args, ...) __CV_CPU_DISPATCH_EXPAND(fn, args, __VA_ARGS__, END) // expand macros
+
+
 #if defined CV_ENABLE_INTRINSICS \
     && !defined CV_DISABLE_OPTIMIZATION \
     && !defined __CUDACC__ /* do not include SSE/AVX/NEON headers for NVCC compiler */ \
@@ -53,6 +70,14 @@
 #  include <immintrin.h>
 #  define CV_AVX 1
 #endif
+#ifdef CV_CPU_COMPILE_FP16
+#  if defined(__arm__) || defined(__aarch64__) || defined(_M_ARM)
+#    include <arm_neon.h>
+#  else
+#    include <immintrin.h>
+#  endif
+#  define CV_FP16 1
+#endif
 #ifdef CV_CPU_COMPILE_AVX2
 #  include <immintrin.h>
 #  define CV_AVX2 1
@@ -61,7 +86,7 @@
 #  define CV_FMA3 1
 #endif
 
-#if (defined WIN32 || defined _WIN32) && defined(_M_ARM)
+#if defined _WIN32 && defined(_M_ARM)
 # include <Intrin.h>
 # include <arm_neon.h>
 # define CV_NEON 1
@@ -74,29 +99,59 @@
 #  include <arm_neon.h>
 #endif
 
+#if defined(__VSX__) && defined(__PPC64__) && defined(__LITTLE_ENDIAN__)
+#  include <altivec.h>
+#  undef vector
+#  undef pixel
+#  undef bool
+#  define CV_VSX 1
+#endif
+
 #endif // CV_ENABLE_INTRINSICS && !CV_DISABLE_OPTIMIZATION && !__CUDACC__
+
+#if defined CV_CPU_COMPILE_AVX && !defined CV_CPU_BASELINE_COMPILE_AVX
+struct VZeroUpperGuard {
+#ifdef __GNUC__
+    __attribute__((always_inline))
+#endif
+    inline ~VZeroUpperGuard() { _mm256_zeroupper(); }
+};
+#define __CV_AVX_GUARD VZeroUpperGuard __vzeroupper_guard; (void)__vzeroupper_guard;
+#endif
+
+#ifdef __CV_AVX_GUARD
+#define CV_AVX_GUARD __CV_AVX_GUARD
+#else
+#define CV_AVX_GUARD
+#endif
 
 #endif // __OPENCV_BUILD
 
 
 
-#if !defined __OPENCV_BUILD // Compatibility code
-
+#if !defined __OPENCV_BUILD /* Compatibility code */ \
+    && !defined __CUDACC__ /* do not include SSE/AVX/NEON headers for NVCC compiler */
 #if defined __SSE2__ || defined _M_X64 || (defined _M_IX86_FP && _M_IX86_FP >= 2)
 #  include <emmintrin.h>
 #  define CV_MMX 1
 #  define CV_SSE 1
 #  define CV_SSE2 1
-#elif (defined WIN32 || defined _WIN32) && defined(_M_ARM)
+#elif defined _WIN32 && defined(_M_ARM)
 # include <Intrin.h>
 # include <arm_neon.h>
 # define CV_NEON 1
 #elif defined(__ARM_NEON__) || (defined (__ARM_NEON) && defined(__aarch64__))
 #  include <arm_neon.h>
 #  define CV_NEON 1
+#elif defined(__VSX__) && defined(__PPC64__) && defined(__LITTLE_ENDIAN__)
+#  include <altivec.h>
+#  undef vector
+#  undef pixel
+#  undef bool
+#  define CV_VSX 1
 #endif
 
-#endif // !__OPENCV_BUILD (Compatibility code)
+#endif // !__OPENCV_BUILD && !__CUDACC (Compatibility code)
 
 
 
@@ -126,6 +181,9 @@
 #endif
 #ifndef CV_AVX
 #  define CV_AVX 0
+#endif
+#ifndef CV_FP16
+#  define CV_FP16 0
 #endif
 #ifndef CV_AVX2
 #  define CV_AVX2 0
@@ -163,4 +221,8 @@
 
 #ifndef CV_NEON
 #  define CV_NEON 0
+#endif
+
+#ifndef CV_VSX
+#  define CV_VSX 0
 #endif
