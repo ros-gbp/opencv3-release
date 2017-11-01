@@ -133,7 +133,7 @@ int Core_ReduceTest::checkOp( const Mat& src, int dstType, int opType, const Mat
 
     assert( opRes.type() == CV_64FC1 );
     Mat _dst, dst, diff;
-    reduce( src, _dst, dim, opType, dstType );
+    cv::reduce( src, _dst, dim, opType, dstType );
     _dst.convertTo( dst, CV_64FC1 );
 
     absdiff( opRes,dst,diff );
@@ -313,7 +313,7 @@ protected:
         Mat rBackPrjTestPoints = rPCA.backProject( rPrjTestPoints );
 
         Mat avg(1, sz.width, CV_32FC1 );
-        reduce( rPoints, avg, 0, CV_REDUCE_AVG );
+        cv::reduce( rPoints, avg, 0, CV_REDUCE_AVG );
         Mat Q = rPoints - repeat( avg, rPoints.rows, 1 ), Qt = Q.t(), eval, evec;
         Q = Qt * Q;
         Q = Q /(float)rPoints.rows;
@@ -659,6 +659,25 @@ struct InitializerFunctor{
     }
 };
 
+template<typename Pixel>
+struct InitializerFunctor5D{
+    /// Initializer for cv::Mat::forEach test (5 dimensional case)
+    void operator()(Pixel & pixel, const int * idx) const {
+        pixel[0] = idx[0];
+        pixel[1] = idx[1];
+        pixel[2] = idx[2];
+        pixel[3] = idx[3];
+        pixel[4] = idx[4];
+    }
+};
+
+template<typename Pixel>
+struct EmptyFunctor
+{
+    void operator()(const Pixel &, const int *) const {}
+};
+
+
 void Core_ArrayOpTest::run( int /* start_from */)
 {
     int errcount = 0;
@@ -734,6 +753,68 @@ void Core_ArrayOpTest::run( int /* start_from */)
             ts->printf(cvtest::TS::LOG, "forEach is not correct because total is invalid.\n");
             errcount++;
         }
+    }
+
+    // test cv::Mat::forEach
+    // with a matrix that has more dimensions than columns
+    // See https://github.com/opencv/opencv/issues/8447
+    {
+        const int dims[5] = { 2, 2, 2, 2, 2 };
+        typedef cv::Vec<int, 5> Pixel;
+
+        cv::Mat a = cv::Mat::zeros(5, dims, CV_32SC(5));
+        InitializerFunctor5D<Pixel> initializer;
+
+        a.forEach<Pixel>(initializer);
+
+        uint64 total = 0;
+        bool error_reported = false;
+        for (int i0 = 0; i0 < dims[0]; ++i0) {
+            for (int i1 = 0; i1 < dims[1]; ++i1) {
+                for (int i2 = 0; i2 < dims[2]; ++i2) {
+                    for (int i3 = 0; i3 < dims[3]; ++i3) {
+                        for (int i4 = 0; i4 < dims[4]; ++i4) {
+                            const int i[5] = { i0, i1, i2, i3, i4 };
+                            Pixel& pixel = a.at<Pixel>(i);
+                            if (pixel[0] != i0 || pixel[1] != i1 || pixel[2] != i2 || pixel[3] != i3 || pixel[4] != i4) {
+                                if (!error_reported) {
+                                    ts->printf(cvtest::TS::LOG, "forEach is not correct.\n"
+                                        "First error detected at position (%d, %d, %d, %d, %d), got value (%d, %d, %d, %d, %d).\n",
+                                        i0, i1, i2, i3, i4,
+                                        pixel[0], pixel[1], pixel[2], pixel[3], pixel[4]);
+                                    error_reported = true;
+                                }
+                                errcount++;
+                            }
+                            total += pixel[0];
+                            total += pixel[1];
+                            total += pixel[2];
+                            total += pixel[3];
+                            total += pixel[4];
+                        }
+                    }
+                }
+            }
+        }
+        uint64 total2 = 0;
+        for (size_t i = 0; i < sizeof(dims) / sizeof(dims[0]); ++i) {
+            total2 += ((dims[i] - 1) * dims[i] / 2) * dims[0] * dims[1] * dims[2] * dims[3] * dims[4] / dims[i];
+        }
+        if (total != total2) {
+            ts->printf(cvtest::TS::LOG, "forEach is not correct because total is invalid.\n");
+            errcount++;
+        }
+    }
+
+    // test const cv::Mat::forEach
+    {
+        const Mat a(10, 10, CV_32SC3);
+        Mat b(10, 10, CV_32SC3);
+        const Mat & c = b;
+        a.forEach<Point3i>(EmptyFunctor<Point3i>());
+        b.forEach<Point3i>(EmptyFunctor<const Point3i>());
+        c.forEach<Point3i>(EmptyFunctor<Point3i>());
+        // tests compilation, no runtime check is needed
     }
 
     RNG rng;
@@ -1335,6 +1416,24 @@ TEST(Core_Matx, fromMat_)
     ASSERT_EQ( cvtest::norm(a, b, NORM_INF), 0.);
 }
 
+#ifdef CV_CXX11
+
+TEST(Core_Matx, from_initializer_list)
+{
+    Mat_<double> a = (Mat_<double>(2,2) << 10, 11, 12, 13);
+    Matx22d b = {10, 11, 12, 13};
+    ASSERT_EQ( cvtest::norm(a, b, NORM_INF), 0.);
+}
+
+TEST(Core_Mat, regression_9507)
+{
+    cv::Mat m = Mat::zeros(5, 5, CV_8UC3);
+    cv::Mat m2{m};
+    EXPECT_EQ(25u, m2.total());
+}
+
+#endif // CXX11
+
 TEST(Core_InputArray, empty)
 {
     vector<vector<Point> > data;
@@ -1571,3 +1670,158 @@ TEST(Mat, regression_7873_mat_vector_initialize)
     ASSERT_EQ(3, sub_mat.size[1]);
     ASSERT_EQ(2, sub_mat.size[2]);
 }
+
+#ifdef CV_CXX_STD_ARRAY
+TEST(Core_Mat_array, outputArray_create_getMat)
+{
+    cv::Mat_<uchar> src_base(5, 1);
+    std::array<uchar, 5> dst8;
+
+    src_base << 1, 2, 3, 4, 5;
+
+    Mat src(src_base);
+    OutputArray _dst(dst8);
+
+    {
+        _dst.create(src.rows, src.cols, src.type());
+        Mat dst = _dst.getMat();
+        EXPECT_EQ(src.dims, dst.dims);
+        EXPECT_EQ(src.cols, dst.cols);
+        EXPECT_EQ(src.rows, dst.rows);
+    }
+}
+
+TEST(Core_Mat_array, copyTo_roi_column)
+{
+    cv::Mat_<uchar> src_base(5, 2);
+
+    src_base << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10;
+
+    Mat src_full(src_base);
+    Mat src(src_full.col(0));
+
+    std::array<uchar, 5> dst1;
+    src.copyTo(dst1);
+    std::cout << "src = " << src << std::endl;
+    std::cout << "dst = " << Mat(dst1) << std::endl;
+    EXPECT_EQ((size_t)5, dst1.size());
+    EXPECT_EQ(1, (int)dst1[0]);
+    EXPECT_EQ(3, (int)dst1[1]);
+    EXPECT_EQ(5, (int)dst1[2]);
+    EXPECT_EQ(7, (int)dst1[3]);
+    EXPECT_EQ(9, (int)dst1[4]);
+}
+
+TEST(Core_Mat_array, copyTo_roi_row)
+{
+    cv::Mat_<uchar> src_base(2, 5);
+    std::array<uchar, 5> dst1;
+
+    src_base << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10;
+
+    Mat src_full(src_base);
+    Mat src(src_full.row(0));
+    OutputArray _dst(dst1);
+    {
+        _dst.create(5, 1, src.type());
+        Mat dst = _dst.getMat();
+        EXPECT_EQ(src.dims, dst.dims);
+        EXPECT_EQ(1, dst.cols);
+        EXPECT_EQ(5, dst.rows);
+    }
+
+    std::array<uchar, 5> dst2;
+    src.copyTo(dst2);
+    std::cout << "src = " << src << std::endl;
+    std::cout << "dst = " << Mat(dst2) << std::endl;
+    EXPECT_EQ(1, (int)dst2[0]);
+    EXPECT_EQ(2, (int)dst2[1]);
+    EXPECT_EQ(3, (int)dst2[2]);
+    EXPECT_EQ(4, (int)dst2[3]);
+    EXPECT_EQ(5, (int)dst2[4]);
+}
+
+TEST(Core_Mat_array, SplitMerge)
+{
+    std::array<cv::Mat, 3> src;
+    for(size_t i=0; i<src.size(); ++i) {
+        src[i].create(10, 10, CV_8U);
+        src[i] = 127 * i;
+    }
+
+    Mat merged;
+    merge(src, merged);
+
+    std::array<cv::Mat, 3> dst;
+    split(merged, dst);
+
+    Mat diff;
+    for(size_t i=0; i<dst.size(); ++i) {
+        absdiff(src[i], dst[i], diff);
+        EXPECT_EQ(0, countNonZero(diff));
+    }
+}
+#endif
+
+TEST(Mat, regression_8680)
+{
+   Mat_<Point2i> mat(3,1);
+   ASSERT_EQ(mat.channels(), 2);
+   mat.release();
+   ASSERT_EQ(mat.channels(), 2);
+}
+
+#ifdef CV_CXX11
+
+TEST(Mat_, range_based_for)
+{
+    Mat_<uchar> img = Mat_<uchar>::zeros(3, 3);
+
+    for(auto& pixel : img)
+    {
+        pixel = 1;
+    }
+
+    Mat_<uchar> ref(3, 3);
+    ref.setTo(Scalar(1));
+    ASSERT_DOUBLE_EQ(norm(img, ref), 0.);
+}
+
+TEST(Mat, from_initializer_list)
+{
+    Mat A({1.f, 2.f, 3.f});
+    Mat_<float> B(3, 1); B << 1, 2, 3;
+
+    ASSERT_EQ(A.type(), CV_32F);
+    ASSERT_DOUBLE_EQ(norm(A, B, NORM_INF), 0.);
+}
+
+TEST(Mat_, from_initializer_list)
+{
+    Mat_<float> A = {1, 2, 3};
+    Mat_<float> B(3, 1); B << 1, 2, 3;
+
+    ASSERT_DOUBLE_EQ(norm(A, B, NORM_INF), 0.);
+}
+
+
+TEST(Mat, template_based_ptr)
+{
+    Mat mat = (Mat_<float>(2, 2) << 11.0f, 22.0f, 33.0f, 44.0f);
+    int idx[2] = {1, 0};
+    ASSERT_FLOAT_EQ(33.0f, *(mat.ptr<float>(idx)));
+    idx[0] = 1;
+    idx[1] = 1;
+    ASSERT_FLOAT_EQ(44.0f, *(mat.ptr<float>(idx)));
+}
+
+TEST(Mat_, template_based_ptr)
+{
+    int dim[4] = {2, 2, 1, 2};
+    Mat_<float> mat = (Mat_<float>(4, dim) << 11.0f, 22.0f, 33.0f, 44.0f,
+                                              55.0f, 66.0f, 77.0f, 88.0f);
+    int idx[4] = {1, 0, 0, 1};
+    ASSERT_FLOAT_EQ(66.0f, *(mat.ptr<float>(idx)));
+}
+
+#endif

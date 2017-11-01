@@ -140,7 +140,7 @@ FLANN based Matcher
 
 FLANN stands for Fast Library for Approximate Nearest Neighbors. It contains a collection of
 algorithms optimized for fast nearest neighbor search in large datasets and for high dimensional
-features. It works more faster than BFMatcher for large datasets. We will see the second example
+features. It works faster than BFMatcher for large datasets. We will see the second example
 with FLANN based matcher.
 
 For FLANN based matcher, we need to pass two dictionaries which specifies the algorithm to be used,
@@ -148,11 +148,13 @@ its related parameters etc. First one is IndexParams. For various algorithms, th
 passed is explained in FLANN docs. As a summary, for algorithms like SIFT, SURF etc. you can pass
 following:
 @code{.py}
+FLANN_INDEX_KDTREE = 1
 index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
 @endcode
 While using ORB, you can pass the following. The commented values are recommended as per the docs,
 but it didn't provide required results in some cases. Other values worked fine.:
 @code{.py}
+FLANN_INDEX_LSH = 6
 index_params= dict(algorithm = FLANN_INDEX_LSH,
                    table_number = 6, # 12
                    key_size = 12,     # 20
@@ -179,7 +181,7 @@ kp1, des1 = sift.detectAndCompute(img1,None)
 kp2, des2 = sift.detectAndCompute(img2,None)
 
 # FLANN parameters
-FLANN_INDEX_KDTREE = 0
+FLANN_INDEX_KDTREE = 1
 index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
 search_params = dict(checks=50)   # or pass empty dictionary
 

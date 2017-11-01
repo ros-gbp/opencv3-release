@@ -73,7 +73,7 @@ using namespace cv;
 
 class TrackerMedianFlowImpl : public TrackerMedianFlow{
 public:
-    TrackerMedianFlowImpl(TrackerMedianFlow::Params paramsIn) {params=paramsIn;isInit=false;}
+    TrackerMedianFlowImpl(TrackerMedianFlow::Params paramsIn = TrackerMedianFlow::Params()) {params=paramsIn;isInit=false;}
     void read( const FileNode& fn );
     void write( FileStorage& fs ) const;
 private:
@@ -83,7 +83,9 @@ private:
     Rect2d vote(const std::vector<Point2f>& oldPoints,const std::vector<Point2f>& newPoints,const Rect2d& oldRect,Point2f& mD);
     float dist(Point2f p1,Point2f p2);
     std::string type2str(int type);
+#if 0
     void computeStatistics(std::vector<float>& data,int size=-1);
+#endif
     void check_FB(const std::vector<Mat>& oldImagePyr,const std::vector<Mat>& newImagePyr,
                   const std::vector<Point2f>& oldPoints,const std::vector<Point2f>& newPoints,std::vector<bool>& status);
     void check_NCC(const Mat& oldImage,const Mat& newImage,
@@ -337,6 +339,7 @@ Rect2d TrackerMedianFlowImpl::vote(const std::vector<Point2f>& oldPoints,const s
     return newRect;
 }
 
+#if 0
 void TrackerMedianFlowImpl::computeStatistics(std::vector<float>& data,int size){
     int binnum=10;
     if(size==-1){
@@ -351,6 +354,7 @@ void TrackerMedianFlowImpl::computeStatistics(std::vector<float>& data,int size)
         dprintf(("[%4f,%4f] -- %4d\n",mini+(maxi-mini)/binnum*i,mini+(maxi-mini)/binnum*(i+1),bins[i]));
     }
 }
+#endif
 
 void TrackerMedianFlowImpl::check_FB(const std::vector<Mat>& oldImagePyr, const std::vector<Mat>& newImagePyr,
                                      const std::vector<Point2f>& oldPoints, const std::vector<Point2f>& newPoints, std::vector<bool>& status){
@@ -482,8 +486,11 @@ void TrackerMedianFlow::Params::write( cv::FileStorage& fs ) const{
     fs << "maxMedianLengthOfDisplacementDifference" << maxMedianLengthOfDisplacementDifference;
 }
 
-Ptr<TrackerMedianFlow> TrackerMedianFlow::createTracker(const TrackerMedianFlow::Params &parameters){
+Ptr<TrackerMedianFlow> TrackerMedianFlow::create(const TrackerMedianFlow::Params &parameters){
     return Ptr<TrackerMedianFlowImpl>(new TrackerMedianFlowImpl(parameters));
+}
+Ptr<TrackerMedianFlow> TrackerMedianFlow::create(){
+    return Ptr<TrackerMedianFlowImpl>(new TrackerMedianFlowImpl());
 }
 
 } /* namespace cv */
