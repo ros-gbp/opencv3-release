@@ -18,9 +18,9 @@ if(ENABLE_CCACHE AND NOT CMAKE_COMPILER_IS_CCACHE)
         message(STATUS "Unable to compile program with enabled ccache, reverting...")
         set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${__OLD_RULE_LAUNCH_COMPILE}")
       endif()
-    else()
-      message(STATUS "Looking for ccache - not found")
     endif()
+  else()
+    message(STATUS "Looking for ccache - not found")
   endif()
 endif()
 
@@ -127,6 +127,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   add_extra_compiler_option(-Wpointer-arith)
   add_extra_compiler_option(-Wshadow)
   add_extra_compiler_option(-Wsign-promo)
+  add_extra_compiler_option(-Wuninitialized)
+  add_extra_compiler_option(-Winit-self)
 
   if(ENABLE_NOISY_WARNINGS)
     add_extra_compiler_option(-Wcast-align)
@@ -136,6 +138,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     add_extra_compiler_option(-Wno-delete-non-virtual-dtor)
     add_extra_compiler_option(-Wno-unnamed-type-template-args)
     add_extra_compiler_option(-Wno-comment)
+    add_extra_compiler_option(-Wno-implicit-fallthrough)
   endif()
   add_extra_compiler_option(-fdiagnostics-show-option)
 
@@ -201,11 +204,18 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   endif()
 
   set(OPENCV_EXTRA_FLAGS_RELEASE "${OPENCV_EXTRA_FLAGS_RELEASE} -DNDEBUG")
-  set(OPENCV_EXTRA_FLAGS_DEBUG "${OPENCV_EXTRA_FLAGS_DEBUG} -O0 -DDEBUG -D_DEBUG")
+  if(NOT " ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG} " MATCHES "-O")
+    set(OPENCV_EXTRA_FLAGS_DEBUG "${OPENCV_EXTRA_FLAGS_DEBUG} -O0")
+  endif()
+  set(OPENCV_EXTRA_FLAGS_DEBUG "${OPENCV_EXTRA_FLAGS_DEBUG} -DDEBUG -D_DEBUG")
 endif()
 
 if(MSVC)
-  set(OPENCV_EXTRA_FLAGS "${OPENCV_EXTRA_FLAGS} /D _CRT_SECURE_NO_DEPRECATE /D _CRT_NONSTDC_NO_DEPRECATE /D _SCL_SECURE_NO_WARNINGS")
+  #TODO Code refactoring is required to resolve security warnings
+  #if(NOT ENABLE_BUILD_HARDENING)
+    set(OPENCV_EXTRA_FLAGS "${OPENCV_EXTRA_FLAGS} /D _CRT_SECURE_NO_DEPRECATE /D _CRT_NONSTDC_NO_DEPRECATE /D _SCL_SECURE_NO_WARNINGS")
+  #endif()
+
   # 64-bit portability warnings, in MSVC80
   if(MSVC80)
     set(OPENCV_EXTRA_FLAGS "${OPENCV_EXTRA_FLAGS} /Wp64")
@@ -242,7 +252,9 @@ endif()
 # Extra link libs if the user selects building static libs:
 if(NOT BUILD_SHARED_LIBS AND CMAKE_COMPILER_IS_GNUCXX AND NOT ANDROID)
   # Android does not need these settings because they are already set by toolchain file
-  set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} stdc++)
+  if(NOT MINGW)
+    set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} stdc++)
+  endif()
   set(OPENCV_EXTRA_FLAGS "-fPIC ${OPENCV_EXTRA_FLAGS}")
 endif()
 
@@ -268,38 +280,11 @@ set(OPENCV_EXTRA_EXE_LINKER_FLAGS_RELEASE "${OPENCV_EXTRA_EXE_LINKER_FLAGS_RELEA
 set(OPENCV_EXTRA_EXE_LINKER_FLAGS_DEBUG   "${OPENCV_EXTRA_EXE_LINKER_FLAGS_DEBUG}"   CACHE INTERNAL "Extra linker flags for Debug build")
 
 # set default visibility to hidden
-if(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_OPENCV_GCC_VERSION_NUM GREATER 399)
+if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    AND NOT OPENCV_SKIP_VISIBILITY_HIDDEN
+    AND NOT CMAKE_CXX_FLAGS MATCHES "-fvisibility")
   add_extra_compiler_option(-fvisibility=hidden)
   add_extra_compiler_option(-fvisibility-inlines-hidden)
-endif()
-
-# TODO !!!!!
-if(NOT OPENCV_FP16_DISABLE AND NOT IOS)
-  if(ARM AND ENABLE_NEON)
-    set(FP16_OPTION "-mfpu=neon-fp16")
-  elseif((X86 OR X86_64) AND NOT MSVC AND ENABLE_AVX)
-    set(FP16_OPTION "-mf16c")
-  endif()
-  try_compile(__VALID_FP16
-    "${OpenCV_BINARY_DIR}"
-    "${OpenCV_SOURCE_DIR}/cmake/checks/cpu_fp16.cpp"
-    COMPILE_DEFINITIONS "-DCHECK_FP16" "${FP16_OPTION}"
-    OUTPUT_VARIABLE TRY_OUT
-    )
-  if(NOT __VALID_FP16)
-    if((X86 OR X86_64) AND NOT MSVC AND NOT ENABLE_AVX)
-      # GCC enables AVX when mf16c is passed
-      message(STATUS "FP16: Feature disabled")
-    else()
-      message(STATUS "FP16: Compiler support is not available")
-    endif()
-  else()
-    message(STATUS "FP16: Compiler support is available")
-    set(HAVE_FP16 1)
-    if(NOT ${FP16_OPTION} STREQUAL "")
-      add_extra_compiler_option(${FP16_OPTION})
-    endif()
-  endif()
 endif()
 
 #combine all "extra" options
@@ -343,6 +328,7 @@ if(MSVC)
     ocv_warnings_disable(CMAKE_CXX_FLAGS /wd4251) # class 'std::XXX' needs to have dll-interface to be used by clients of YYY
     ocv_warnings_disable(CMAKE_CXX_FLAGS /wd4324) # 'struct_name' : structure was padded due to __declspec(align())
     ocv_warnings_disable(CMAKE_CXX_FLAGS /wd4275) # non dll-interface class 'std::exception' used as base for dll-interface class 'cv::Exception'
+    ocv_warnings_disable(CMAKE_CXX_FLAGS /wd4512) # Assignment operator could not be generated
     ocv_warnings_disable(CMAKE_CXX_FLAGS /wd4589) # Constructor of abstract class 'cv::ORB' ignores initializer for virtual base class 'cv::Algorithm'
   endif()
 
@@ -356,4 +342,9 @@ endif()
 
 if(APPLE AND NOT CMAKE_CROSSCOMPILING AND NOT DEFINED ENV{LDFLAGS} AND EXISTS "/usr/local/lib")
   link_directories("/usr/local/lib")
+endif()
+
+
+if(ENABLE_BUILD_HARDENING)
+  include(${CMAKE_CURRENT_LIST_DIR}/OpenCVCompilerDefenses.cmake)
 endif()
