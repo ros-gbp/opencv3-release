@@ -401,6 +401,12 @@ class CV_EXPORTS BinaryDescriptor : public Algorithm
     unsigned int octaveCount;
     //the decriptor of line
     std::vector<float> descriptor;
+
+    OctaveSingleLine() : startPointX(0), startPointY(0), endPointX(0), endPointY(0),
+        sPointInOctaveX(0), sPointInOctaveY(0), ePointInOctaveX(0), ePointInOctaveY(0),
+        direction(0), salience(0), lineLength(0), numOfPixels(0), octaveCount(0),
+        descriptor(std::vector<float>())
+    {}
   };
 
   struct Pixel
@@ -747,10 +753,7 @@ class CV_EXPORTS BinaryDescriptor : public Algorithm
 
       /* check parameters */
       if( n < 0 || k < 0 || k > n || p <= 0.0 || p >= 1.0 )
-      {
-        std::cout << "nfa: wrong n, k or p values." << std::endl;
-        exit( 0 );
-      }
+        CV_Error(Error::StsBadArg, "nfa: wrong n, k or p values.\n");
       /* trivial cases */
       if( n == 0 || k == 0 )
         return -logNT;

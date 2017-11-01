@@ -715,7 +715,7 @@ void CV_SmoothBaseTest::get_test_array_types_and_sizes( int test_case_idx,
 double CV_SmoothBaseTest::get_success_error_level( int /*test_case_idx*/, int /*i*/, int /*j*/ )
 {
     int depth = test_mat[INPUT][0].depth();
-    return depth <= CV_8S ? 1 : 1e-5;
+    return depth < CV_32F ? 1 : 1e-5;
 }
 
 
@@ -2064,4 +2064,37 @@ TEST(Imgproc_Sobel, borderTypes)
     EXPECT_EQ(expected_dst.type(), dst.type());
     EXPECT_EQ(expected_dst.size(), dst.size());
     EXPECT_DOUBLE_EQ(0.0, cvtest::norm(expected_dst, dst, NORM_INF));
+}
+
+TEST(Imgproc_MorphEx, hitmiss_regression_8957)
+{
+    Mat_<uchar> src(3, 3);
+    src << 0, 255, 0,
+           0,   0, 0,
+           0, 255, 0;
+
+    Mat_<uchar> kernel = src / 255;
+
+    Mat dst;
+    morphologyEx(src, dst, MORPH_HITMISS, kernel);
+
+    Mat ref = Mat::zeros(3, 3, CV_8U);
+    ref.at<uchar>(1, 1) = 255;
+
+    ASSERT_DOUBLE_EQ(norm(dst, ref, NORM_INF), 0.);
+}
+
+TEST(Imgproc_MorphEx, hitmiss_zero_kernel)
+{
+    Mat_<uchar> src(3, 3);
+    src << 0, 255, 0,
+           0,   0, 0,
+           0, 255, 0;
+
+    Mat_<uchar> kernel = Mat_<uchar>::zeros(3, 3);
+
+    Mat dst;
+    morphologyEx(src, dst, MORPH_HITMISS, kernel);
+
+    ASSERT_DOUBLE_EQ(norm(dst, src, NORM_INF), 0.);
 }
