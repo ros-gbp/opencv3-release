@@ -72,6 +72,7 @@ public:
         shapeContextWeight=1.0f;
         sigma=10.0f;
         name_ = "ShapeDistanceExtractor.SCD";
+        costFlag = 0;
     }
 
     /* Destructor */
@@ -202,6 +203,13 @@ float ShapeContextDistanceExtractorImpl::computeDistance(InputArray contour1, In
 
     CV_Assert((set1.channels()==2) && (set1.cols>0));
     CV_Assert((set2.channels()==2) && (set2.cols>0));
+
+    // Force vectors column-based
+    if (set1.dims > 1)
+        set1 = set1.reshape(2, 1);
+    if (set2.dims > 1)
+        set2 = set2.reshape(2, 1);
+
     if (imageAppearanceWeight!=0)
     {
         CV_Assert((!image1.empty()) && (!image2.empty()));
