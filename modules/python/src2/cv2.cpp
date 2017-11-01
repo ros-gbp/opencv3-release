@@ -89,6 +89,7 @@ typedef std::vector<char> vector_char;
 typedef std::vector<int> vector_int;
 typedef std::vector<float> vector_float;
 typedef std::vector<double> vector_double;
+typedef std::vector<size_t> vector_size_t;
 typedef std::vector<Point> vector_Point;
 typedef std::vector<Point2f> vector_Point2f;
 typedef std::vector<Point3f> vector_Point3f;
@@ -101,6 +102,7 @@ typedef std::vector<Rect> vector_Rect;
 typedef std::vector<Rect2d> vector_Rect2d;
 typedef std::vector<KeyPoint> vector_KeyPoint;
 typedef std::vector<Mat> vector_Mat;
+typedef std::vector<std::vector<Mat> > vector_vector_Mat;
 typedef std::vector<UMat> vector_UMat;
 typedef std::vector<DMatch> vector_DMatch;
 typedef std::vector<String> vector_String;
@@ -149,7 +151,7 @@ public:
     {
         if( data != 0 )
         {
-            CV_Error(Error::StsAssert, "The data should normally be NULL!");
+            // issue #6969: CV_Error(Error::StsAssert, "The data should normally be NULL!");
             // probably this is safe to do in such extreme case
             return stdAllocator->allocate(dims0, sizes, type, data, step, flags, usageFlags);
         }
@@ -394,6 +396,15 @@ bool pyopencv_to(PyObject* o, Mat& m, const char* name)
     return pyopencv_to(o, m, ArgInfo(name, 0));
 }
 
+template <typename T>
+bool pyopencv_to(PyObject *o, Ptr<T>& p, const char *name)
+{
+    if (!o || o == Py_None)
+        return true;
+    p = makePtr<T>();
+    return pyopencv_to(o, *p, name);
+}
+
 template<>
 PyObject* pyopencv_from(const Mat& m)
 {
@@ -415,6 +426,14 @@ template<typename _Tp, int m, int n>
 PyObject* pyopencv_from(const Matx<_Tp, m, n>& matx)
 {
     return pyopencv_from(Mat(matx));
+}
+
+template<typename T>
+PyObject* pyopencv_from(const cv::Ptr<T>& p)
+{
+    if (!p)
+        Py_RETURN_NONE;
+    return pyopencv_from(*p);
 }
 
 typedef struct {
@@ -508,13 +527,71 @@ static PyObject * UMatWrapper_get(cv2_UMatWrapperObject* self)
     return pyopencv_from(m);
 }
 
+// UMatWrapper.handle() - returns the OpenCL handle of the UMat object
+static PyObject * UMatWrapper_handle(cv2_UMatWrapperObject* self, PyObject *args, PyObject *kwds)
+{
+    const char *kwlist[] = {"accessFlags", NULL};
+    int accessFlags;
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", (char**) kwlist, &accessFlags))
+        return 0;
+    return PyLong_FromVoidPtr(self->um->handle(accessFlags));
+}
+
+// UMatWrapper.isContinuous() - returns true if the matrix data is continuous
+static PyObject * UMatWrapper_isContinuous(cv2_UMatWrapperObject* self)
+{
+    return PyBool_FromLong(self->um->isContinuous());
+}
+
+// UMatWrapper.isContinuous() - returns true if the matrix is a submatrix of another matrix
+static PyObject * UMatWrapper_isSubmatrix(cv2_UMatWrapperObject* self)
+{
+    return PyBool_FromLong(self->um->isSubmatrix());
+}
+
+// UMatWrapper.context() - returns the OpenCL context used by OpenCV UMat
+static PyObject * UMatWrapper_context(cv2_UMatWrapperObject*)
+{
+    return PyLong_FromVoidPtr(cv::ocl::Context::getDefault().ptr());
+}
+
+// UMatWrapper.context() - returns the OpenCL queue used by OpenCV UMat
+static PyObject * UMatWrapper_queue(cv2_UMatWrapperObject*)
+{
+    return PyLong_FromVoidPtr(cv::ocl::Queue::getDefault().ptr());
+}
+
+static PyObject * UMatWrapper_offset_getter(cv2_UMatWrapperObject* self, void*)
+{
+    return PyLong_FromSsize_t(self->um->offset);
+}
+
 static PyMethodDef UMatWrapper_methods[] = {
         {"get", (PyCFunction)UMatWrapper_get, METH_NOARGS,
                 "Returns numpy array"
         },
+        {"handle", (PyCFunction)UMatWrapper_handle, METH_VARARGS | METH_KEYWORDS,
+                "Returns UMat native handle"
+        },
+        {"isContinuous", (PyCFunction)UMatWrapper_isContinuous, METH_NOARGS,
+                "Returns true if the matrix data is continuous"
+        },
+        {"isSubmatrix", (PyCFunction)UMatWrapper_isSubmatrix, METH_NOARGS,
+                "Returns true if the matrix is a submatrix of another matrix"
+        },
+        {"context", (PyCFunction)UMatWrapper_context, METH_NOARGS | METH_STATIC,
+                "Returns OpenCL context handle"
+        },
+        {"queue", (PyCFunction)UMatWrapper_queue, METH_NOARGS | METH_STATIC,
+                "Returns OpenCL queue handle"
+        },
         {NULL, NULL, 0, NULL}  /* Sentinel */
 };
 
+static PyGetSetDef UMatWrapper_getset[] = {
+        {(char*) "offset", (getter) UMatWrapper_offset_getter, NULL, NULL, NULL},
+        {NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
+};
 
 static PyTypeObject cv2_UMatWrapperType = {
 #if PY_MAJOR_VERSION >= 3
@@ -551,7 +628,7 @@ static PyTypeObject cv2_UMatWrapperType = {
         0,                             /* tp_iternext */
         UMatWrapper_methods,           /* tp_methods */
         0,                             /* tp_members */
-        0,                             /* tp_getset */
+        UMatWrapper_getset,            /* tp_getset */
         0,                             /* tp_base */
         0,                             /* tp_dict */
         0,                             /* tp_descr_get */
@@ -977,7 +1054,7 @@ PyObject* pyopencv_from(const Point2d& p)
 template<>
 PyObject* pyopencv_from(const Point3d& p)
 {
-    return Py_BuildValue("(ddd)", p.x, p.y, p.y);
+    return Py_BuildValue("(ddd)", p.x, p.y, p.z);
 }
 
 template<typename _Tp> struct pyopencvVecConverter
@@ -1001,7 +1078,7 @@ template<typename _Tp> struct pyopencvVecConverter
         int i, j, n = (int)PySequence_Fast_GET_SIZE(seq);
         value.resize(n);
 
-        int type = DataType<_Tp>::type;
+        int type = traits::Type<_Tp>::value;
         int depth = CV_MAT_DEPTH(type), channels = CV_MAT_CN(type);
         PyObject** items = PySequence_Fast_ITEMS(seq);
 
@@ -1084,7 +1161,9 @@ template<typename _Tp> struct pyopencvVecConverter
     {
         if(value.empty())
             return PyTuple_New(0);
-        Mat src((int)value.size(), DataType<_Tp>::channels, DataType<_Tp>::depth, (uchar*)&value[0]);
+        int type = traits::Type<_Tp>::value;
+        int depth = CV_MAT_DEPTH(type), channels = CV_MAT_CN(type);
+        Mat src((int)value.size(), channels, depth, (uchar*)&value[0]);
         return pyopencv_from(src);
     }
 };
@@ -1269,21 +1348,6 @@ PyObject* pyopencv_from(const Moments& m)
                          "mu30", m.mu30, "mu21", m.mu21, "mu12", m.mu12, "mu03", m.mu03,
                          "nu20", m.nu20, "nu11", m.nu11, "nu02", m.nu02,
                          "nu30", m.nu30, "nu21", m.nu21, "nu12", m.nu12, "nu03", m.nu03);
-}
-
-template<typename T>
-PyObject* pyopencv_from(const cv::Ptr<T>& p)
-{
-    if (!p) return Py_None;
-    return pyopencv_from(*p);
-}
-
-template <typename T>
-bool pyopencv_to(PyObject *o, Ptr<T>& p, const char *name)
-{
-    if (!o || o == Py_None) return true;
-    p = makePtr<T>();
-    return pyopencv_to(o, *p, name);
 }
 
 #include "pyopencv_custom_headers.h"
@@ -1549,14 +1613,20 @@ void initcv2()
     return;
 #endif
 
+
 #if PY_MAJOR_VERSION >= 3
-  Py_INCREF(&cv2_UMatWrapperType);
+#define PUBLISH_OBJECT(name, type) Py_INCREF(&type);\
+  PyModule_AddObject(m, name, (PyObject *)&type);
 #else
-  // Unrolled Py_INCREF(&cv2_UMatWrapperType) without (PyObject*) cast
-  // due to "warning: dereferencing type-punned pointer will break strict-aliasing rules"
-  _Py_INC_REFTOTAL _Py_REF_DEBUG_COMMA (&cv2_UMatWrapperType)->ob_refcnt++;
+// Unrolled Py_INCREF(&type) without (PyObject*) cast
+// due to "warning: dereferencing type-punned pointer will break strict-aliasing rules"
+#define PUBLISH_OBJECT(name, type) _Py_INC_REFTOTAL _Py_REF_DEBUG_COMMA (&type)->ob_refcnt++;\
+  PyModule_AddObject(m, name, (PyObject *)&type);
 #endif
-  PyModule_AddObject(m, "UMat", (PyObject *)&cv2_UMatWrapperType);
+
+  PUBLISH_OBJECT("UMat", cv2_UMatWrapperType);
+
+#include "pyopencv_generated_type_publish.h"
 
 #define PUBLISH(I) PyDict_SetItemString(d, #I, PyInt_FromLong(I))
 //#define PUBLISHU(I) PyDict_SetItemString(d, #I, PyLong_FromUnsignedLong(I))
