@@ -221,11 +221,6 @@ CV__DNN_EXPERIMENTAL_NS_BEGIN
     class CV_EXPORTS LRNLayer : public Layer
     {
     public:
-        enum Type
-        {
-            CHANNEL_NRM,
-            SPATIAL_NRM
-        };
         int type;
 
         int size;
@@ -238,19 +233,15 @@ CV__DNN_EXPERIMENTAL_NS_BEGIN
     class CV_EXPORTS PoolingLayer : public Layer
     {
     public:
-        enum Type
-        {
-            MAX,
-            AVE,
-            STOCHASTIC
-        };
-
         int type;
         Size kernel, stride, pad;
         bool globalPooling;
         bool computeMaxIdx;
         String padMode;
         bool ceilMode;
+        // ROIPooling parameters.
+        Size pooledSize;
+        float spatialScale;
 
         static Ptr<PoolingLayer> create(const LayerParams& params);
     };
@@ -377,6 +368,7 @@ CV__DNN_EXPERIMENTAL_NS_BEGIN
      *                 starting from the first one. The rest of dimensions won't
      *                 be padded.
      * @param value Value to be padded. Defaults to zero.
+     * @param type Padding type: 'constant', 'reflect'
      * @param input_dims Torch's parameter. If @p input_dims is not equal to the
      *                   actual input dimensionality then the `[0]th` dimension
      *                   is considered as a batch dimension and @p paddings are shifted
@@ -469,13 +461,6 @@ CV__DNN_EXPERIMENTAL_NS_BEGIN
     class CV_EXPORTS EltwiseLayer : public Layer
     {
     public:
-        enum EltwiseOp
-        {
-            PROD = 0,
-            SUM = 1,
-            MAX = 2,
-        };
-
         static Ptr<EltwiseLayer> create(const LayerParams &params);
     };
 
