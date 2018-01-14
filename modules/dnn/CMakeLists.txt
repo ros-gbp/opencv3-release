@@ -15,7 +15,7 @@ set(the_description "Deep neural network module. It allows to load models from d
 
 ocv_add_dispatched_file("layers/layers_common" AVX AVX2)
 
-ocv_add_module(dnn opencv_core opencv_imgproc WRAP python matlab java)
+ocv_add_module(dnn opencv_core opencv_imgproc WRAP python matlab java js)
 ocv_warnings_disable(CMAKE_CXX_FLAGS -Wno-shadow -Wno-parentheses -Wmaybe-uninitialized -Wsign-promo
                                      -Wmissing-declarations -Wmissing-prototypes
 )
@@ -56,14 +56,15 @@ ocv_warnings_disable(CMAKE_CXX_FLAGS
 )
 
 if(PROTOBUF_UPDATE_FILES)
-  file(GLOB proto_files src/tensorflow/*.proto)
-  list(APPEND proto_files src/caffe/caffe.proto)
+  file(GLOB proto_files ${CMAKE_CURRENT_SOURCE_DIR}/src/tensorflow/*.proto)
+  list(APPEND proto_files ${CMAKE_CURRENT_SOURCE_DIR}/src/caffe/opencv-caffe.proto)
+  set(PROTOBUF_GENERATE_CPP_APPEND_PATH ON) # required for tensorflow
   PROTOBUF_GENERATE_CPP(Protobuf_HDRS Protobuf_SRCS ${proto_files})
 else()
   file(GLOB fw_srcs ${CMAKE_CURRENT_SOURCE_DIR}/misc/tensorflow/*.cc)
   file(GLOB fw_hdrs ${CMAKE_CURRENT_SOURCE_DIR}/misc/tensorflow/*.h)
-  list(APPEND fw_srcs ${CMAKE_CURRENT_SOURCE_DIR}/misc/caffe/caffe.pb.cc)
-  list(APPEND fw_hdrs ${CMAKE_CURRENT_SOURCE_DIR}/misc/caffe/caffe.pb.h)
+  list(APPEND fw_srcs ${CMAKE_CURRENT_SOURCE_DIR}/misc/caffe/opencv-caffe.pb.cc)
+  list(APPEND fw_hdrs ${CMAKE_CURRENT_SOURCE_DIR}/misc/caffe/opencv-caffe.pb.h)
   list(APPEND Protobuf_SRCS ${fw_srcs})
   list(APPEND Protobuf_HDRS ${fw_hdrs})
   list(APPEND Protobuf_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/misc/caffe)
