@@ -50,8 +50,8 @@ static void colorizeSegmentation(const Mat &score, const vector<cv::Vec3b> &colo
     const int cols = score.size[3];
     const int chns = score.size[1];
 
-    cv::Mat maxCl(rows, cols, CV_8UC1);
-    cv::Mat maxVal(rows, cols, CV_32FC1);
+    cv::Mat maxCl=cv::Mat::zeros(rows, cols, CV_8UC1);
+    cv::Mat maxVal(rows, cols, CV_32FC1, cv::Scalar(-FLT_MAX));
     for (int ch = 0; ch < chns; ch++)
     {
         for (int row = 0; row < rows; row++)
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
         exit(-1);
     }
 
-    resize(img, img, Size(500, 500));       //FCN accepts 500x500 BGR-images
+    resize(img, img, Size(500, 500), 0, 0, INTER_LINEAR_EXACT);       //FCN accepts 500x500 BGR-images
     Mat inputBlob = blobFromImage(img, 1, Size(), Scalar(), false);   //Convert Mat to batch of images
     //! [Prepare blob]
 
