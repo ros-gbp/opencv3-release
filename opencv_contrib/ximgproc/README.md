@@ -2,6 +2,7 @@ Extended Image Processing
 =========================
 
 - Structured Forests
+- Edge Boxes
 - Domain Transform Filter
 - Guided Filter
 - Adaptive Manifold Filter
@@ -13,3 +14,4 @@ Extended Image Processing
 - Fast Line Detector
 - Deriche Filter
 - Pei&Lin Normalization
+- Ridge Detection Filter
