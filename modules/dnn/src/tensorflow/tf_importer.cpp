@@ -449,6 +449,9 @@ void ExcludeLayer(tensorflow::GraphDef& net, const int layer_index, const int in
 class TFImporter : public Importer {
 public:
     TFImporter(const char *model, const char *config = NULL);
+    TFImporter(const char *dataModel, size_t lenModel,
+               const char *dataConfig = NULL, size_t lenConfig = 0);
+
     void populateNet(Net dstNet);
     ~TFImporter() {}
 
@@ -477,6 +480,15 @@ TFImporter::TFImporter(const char *model, const char *config)
         ReadTFNetParamsFromBinaryFileOrDie(model, &netBin);
     if (config && config[0])
         ReadTFNetParamsFromTextFileOrDie(config, &netTxt);
+}
+
+TFImporter::TFImporter(const char *dataModel, size_t lenModel,
+                       const char *dataConfig, size_t lenConfig)
+{
+    if (dataModel != NULL && lenModel > 0)
+        ReadTFNetParamsFromBinaryBufferOrDie(dataModel, lenModel, &netBin);
+    if (dataConfig != NULL && lenConfig > 0)
+        ReadTFNetParamsFromTextBufferOrDie(dataConfig, lenConfig, &netTxt);
 }
 
 void TFImporter::kernelFromTensor(const tensorflow::TensorProto &tensor, Mat &dstBlob)
@@ -692,8 +704,11 @@ void TFImporter::populateNet(Net dstNet)
                                 int dst_i = (j * chMultiplier + i) * height* width + s;
                                 dst[dst_i] = src[src_i];
                             }
+                // TODO Use reshape instead
                 kshape[0] = inCh * chMultiplier;
                 kshape[1] = 1;
+                size_t* kstep = layerParams.blobs[0].step.p;
+                kstep[0] = kstep[1]; // fix steps too
             }
             layerParams.set("kernel_h", kshape[2]);
             layerParams.set("kernel_w", kshape[3]);
@@ -1318,6 +1333,15 @@ Ptr<Importer> createTensorflowImporter(const String&)
 Net readNetFromTensorflow(const String &model, const String &config)
 {
     TFImporter importer(model.c_str(), config.c_str());
+    Net net;
+    importer.populateNet(net);
+    return net;
+}
+
+Net readNetFromTensorflow(const char* bufferModel, size_t lenModel,
+                          const char* bufferConfig, size_t lenConfig)
+{
+    TFImporter importer(bufferModel, lenModel, bufferConfig, lenConfig);
     Net net;
     importer.populateNet(net);
     return net;
