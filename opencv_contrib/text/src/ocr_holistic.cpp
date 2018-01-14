@@ -1,3 +1,7 @@
+// This file is part of OpenCV project.
+// It is subject to the license terms in the LICENSE file found in the top-level directory
+// of this distribution and at http://opencv.org/license.html.
+
 #include "precomp.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/core.hpp"
@@ -81,7 +85,7 @@ protected:
     {
         CV_Assert(image.channels() == 1 && image.depth() == CV_8U);
         Mat resized;
-        resize(image, resized, getPerceptiveField());
+        resize(image, resized, getPerceptiveField(), 0, 0, INTER_LINEAR_EXACT);
         Mat blob = dnn::blobFromImage(resized);
         net.setInput(blob, "data");
         Mat prob = net.forward("prob");
