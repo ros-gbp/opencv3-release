@@ -1171,7 +1171,7 @@ class CV_EXPORTS_W TrackerMedianFlow : public Tracker
 tracking, learning and detection.
 
 The tracker follows the object from frame to frame. The detector localizes all appearances that
-have been observed so far and corrects the tracker if necessary. The learning estimates detector’s
+have been observed so far and corrects the tracker if necessary. The learning estimates detector's
 errors and updates it to avoid these errors in the future. The implementation is based on @cite TLD .
 
 The Median Flow algorithm (see cv::TrackerMedianFlow) was chosen as a tracking component in this
@@ -1297,6 +1297,22 @@ public:
   virtual ~TrackerGOTURN() {}
 };
 
+/** @brief the MOSSE tracker
+note, that this tracker works with grayscale images, if passed bgr ones, they will get converted internally.
+@cite MOSSE Visual Object Tracking using Adaptive Correlation Filters
+*/
+
+class CV_EXPORTS_W TrackerMOSSE : public Tracker
+{
+ public:
+  /** @brief Constructor
+  */
+  CV_WRAP static Ptr<TrackerMOSSE> create();
+
+  virtual ~TrackerMOSSE() {}
+};
+
+
 /************************************ MultiTracker Class ---By Laksono Kurnianggoro---) ************************************/
 /** @brief This class is used to track multiple objects using the specified tracker algorithm.
 * The MultiTracker is naive implementation of multiple object tracking.
@@ -1419,7 +1435,7 @@ public:
 the long-term tracking task into tracking, learning and detection.
 
 The tracker follows the object from frame to frame. The detector localizes all appearances that
-have been observed so far and corrects the tracker if necessary. The learning estimates detector’s
+have been observed so far and corrects the tracker if necessary. The learning estimates detector's
 errors and updates it to avoid these errors in the future. The implementation is based on @cite TLD .
 
 The Median Flow algorithm (see cv::TrackerMedianFlow) was chosen as a tracking component in this
