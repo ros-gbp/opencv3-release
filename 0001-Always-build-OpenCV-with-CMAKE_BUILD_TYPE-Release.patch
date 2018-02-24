@@ -1,0 +1,29 @@
+From 5fcca652725ea92c8e626e99940da642a7f27a56 Mon Sep 17 00:00:00 2001
+From: Johannes Meyer <johannes@intermodalics.eu>
+Date: Fri, 12 Jan 2018 23:44:17 +0100
+Subject: [PATCH] Always build OpenCV with CMAKE_BUILD_TYPE=Release
+
+See https://github.com/ros-gbp/opencv3-release/issues/14 for details.
+---
+ debian/rules.em | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/debian/rules.em b/debian/rules.em
+index aa010fa..aa258e2 100755
+--- a/debian/rules.em
++++ b/debian/rules.em
+@@ -25,8 +25,10 @@ override_dh_auto_configure:
+ 	# In case we're installing to a non-standard location, look for a setup.sh
+ 	# in the install tree that was dropped by catkin, and source it.  It will
+ 	# set things like CMAKE_PREFIX_PATH, PKG_CONFIG_PATH, and PYTHONPATH.
++	# OpenCV needs to be built with CMAKE_BUILD_TYPE Release or (empty), but not
++	# with None as set by debhelper.
+ 	if [ -f "@(InstallationPrefix)/setup.sh" ]; then . "@(InstallationPrefix)/setup.sh"; fi && \
+-	dh_auto_configure -- -DCMAKE_INSTALL_PREFIX="@(InstallationPrefix)"
++	dh_auto_configure -- -DCMAKE_INSTALL_PREFIX="@(InstallationPrefix)" -DCMAKE_BUILD_TYPE=Release
+ 
+ override_dh_auto_build:
+ 	# In case we're installing to a non-standard location, look for a setup.sh
+-- 
+2.7.4
+
