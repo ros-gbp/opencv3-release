@@ -1,4 +1,4 @@
-From f333424875d4ceb0cedc38fa19e52767d25b95bd Mon Sep 17 00:00:00 2001
+From a08e3145618877a36ac4feac8f62ff28762aaa23 Mon Sep 17 00:00:00 2001
 From: Johannes Meyer <johannes@intermodalics.eu>
 Date: Fri, 12 Jan 2018 23:44:17 +0100
 Subject: [PATCH] Always build OpenCV with CMAKE_BUILD_TYPE=Release
