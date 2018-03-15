@@ -776,9 +776,6 @@ add_subdirectory(include)
 # OpenCV modules
 add_subdirectory(modules)
 
-# Generate targets for documentation
-add_subdirectory(doc)
-
 # various data that is used by cv libraries and/or demo applications.
 add_subdirectory(data)
 
