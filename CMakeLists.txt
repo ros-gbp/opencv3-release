@@ -784,11 +784,6 @@ if(BUILD_opencv_apps)
   add_subdirectory(apps)
 endif()
 
-# examples
-if(BUILD_EXAMPLES OR BUILD_ANDROID_EXAMPLES OR INSTALL_PYTHON_EXAMPLES)
-  add_subdirectory(samples)
-endif()
-
 if(ANDROID)
   add_subdirectory(platforms/android/service)
 endif()
