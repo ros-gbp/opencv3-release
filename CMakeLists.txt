@@ -776,20 +776,12 @@ add_subdirectory(include)
 # OpenCV modules
 add_subdirectory(modules)
 
-# Generate targets for documentation
-add_subdirectory(doc)
-
 # various data that is used by cv libraries and/or demo applications.
 add_subdirectory(data)
 
 # extra applications
 if(BUILD_opencv_apps)
   add_subdirectory(apps)
-endif()
-
-# examples
-if(BUILD_EXAMPLES OR BUILD_ANDROID_EXAMPLES OR INSTALL_PYTHON_EXAMPLES)
-  add_subdirectory(samples)
 endif()
 
 if(ANDROID)
